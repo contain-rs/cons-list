@@ -742,7 +742,7 @@ mod tests {
 
     #[test]
     fn test_debug() {
-        let list: BList<i32> = range(0, 10).collect();
+        let list: BList<i32> = (0..10).collect();
         assert_eq!(format!("{:?}", list), "[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]");
 
         let list: BList<&str> = vec!["just", "one", "test", "more"].iter()
