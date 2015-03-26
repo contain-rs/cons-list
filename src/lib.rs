@@ -17,7 +17,7 @@
 
 #![cfg_attr(test, feature(test, hash))]
 
-extern crate "linked-list" as linked_list;
+extern crate linked_list;
 extern crate traverse;
 #[cfg(test)] extern crate test;
 
