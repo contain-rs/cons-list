@@ -1,3 +1,3 @@
-A deque implemented as a hybrid linked-list-of-arrays.
+An immutable singly-linked list, as seen in basically every functional language.
 
-Documentation is available at https://contain-rs.github.io/blist/blist.
+Documentation is available at https://contain-rs.github.io/cons-list/cons-list.
