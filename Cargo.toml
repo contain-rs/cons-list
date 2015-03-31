@@ -1,19 +1,15 @@
 [package]
 
-name = "blist"
-version = "0.0.2"
+name = "cons-list"
+version = "0.0.1"
 license = "MIT/Apache-2.0"
-description = "A deque implemented as a hybrid linked-list-of-arrays"
+description = "An immutable singly-linked list, as seen in basically every functional language"
 authors = [
     "Alexis Beingessner <a.beingessner@gmail.com>",
 ]
 
-repository = "https://github.com/contain-rs/blist"
-homepage = "https://github.com/contain-rs/blist"
-documentation = "https://contain-rs.github.io/blist/blist"
+repository = "https://github.com/contain-rs/cons-list"
+homepage = "https://github.com/contain-rs/cons-list"
+documentation = "https://contain-rs.github.io/cons-list/cons-list"
 keywords = ["data-structures"]
 readme = "README.md"
-
-[dependencies]
-traverse = "*"
-linked-list = "*"

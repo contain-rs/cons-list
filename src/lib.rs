@@ -8,498 +8,195 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-//! A deque implemented as a hybrid linked-list-of-arrays
+//! An immutable singly-linked list, as seen in basically every functional language.
 
-#![feature(box_syntax)]
-#![feature(unsafe_destructor)]
-#![feature(box_patterns)]
-#![feature(core)]
-
+#![feature(box_syntax, unsafe_destructor, core, alloc)]
 #![cfg_attr(test, feature(test, hash))]
 
-extern crate linked_list;
-extern crate traverse;
 #[cfg(test)] extern crate test;
 
 use std::cmp::Ordering;
-use std::collections::{vec_deque, VecDeque};
 use std::iter::{self, IntoIterator};
-use std::fmt;
+use std::rc::{try_unwrap, Rc};
 use std::hash::{Hash, Hasher};
-use std::num::Int;
-use traverse::Traversal;
-use linked_list::LinkedList;
 
-/// A skeleton implementation of a BList, based on the [Space-Efficient Linked List]
-/// (http://opendatastructures.org/ods-python/3_3_SEList_Space_Efficient_.html) described in
-/// Open Data Structures.
-///
-/// A BList is a hybrid between an array and a doubly-linked-list. It consists of arrays in a
-/// doubly-linked-list. In this way we get many of the nice properties of a LinkedList, but with
-/// improved cache properties and less allocations.
-///
-/// A BList's B-factor is analogous to the same factor in a BTree. It guarantees that all nodes
-/// contain `B-1` and `B+1` elements (except the ends). Once a position has been identified to
-/// perform an insertion or deletion, it will take amortized `O(B)` time to perform, with a
-/// worst-case cost of `O(B^2)`. Insertion and deletion on either end will always take
-/// `O(1)` time, though (assuming it takes `O(1)` time to allocate an array of size `B`).
+struct Node<T> {
+    elem: T,
+    next: Option<Rc<Node<T>>>,
+}
+
+impl<T> Node<T> {
+    fn new(elem: T) -> Node<T> {
+        Node { elem: elem, next: None }
+    }
+}
+
+/// An iterator over the items of an ConsList
 #[derive(Clone)]
-pub struct BList<T> {
-    list: LinkedList<VecDeque<T>>,
-    b: usize,
-    len: usize,
+pub struct Iter<'a, T: 'a> {
+    head: Option<&'a Node<T>>,
+    nelem: usize,
 }
 
-// Constructors
-impl<T> BList<T> {
-    /// Creates a new BList with a reasonable choice for B.
-    pub fn new() -> BList<T> {
-        // VecDeque always has capacity = 2^k - 1, for some k;
-        // b = 6 gets us max_len = b + 1 = 7 = 2^3 - 1
-        BList::with_b(6)
-    }
-
-    /// Creates a new BList with the specified B.
-    pub fn with_b(b: usize) -> BList<T> {
-        assert!(b > 1, "B must be > 1");
-        BList {
-            list: LinkedList::new(),
-            b: b,
-            len: 0,
-        }
-    }
+/// An immutable singly-linked list, as seen in basically every functional language
+pub struct ConsList<T> {
+    front: Option<Rc<Node<T>>>,
+    length: usize,
 }
 
-// Methods
-impl<T> BList<T> {
-    /// Inserts the element at the back of the list.
-    pub fn push_back(&mut self, elem: T) {
-        self.len = self.len.checked_add(1).expect("capacity overflow");
-        let b = self.b;
-        let max = block_max(b);
-        if let Some(block) = self.list.back_mut() {
-            if block.len() < max {
-                block.push_back(elem);
-                return;
+impl<T> ConsList<T> {
+    /// Constructs a new, empty `ConsList`
+    pub fn new () -> ConsList<T> {
+        ConsList{ front: None, length: 0 }
+    }
+
+    /// Returns a copy of the list, with `elem` appended to the front
+    pub fn append (&self, elem: T) -> ConsList<T>{
+        let mut new_node = Node::new(elem);
+        new_node.next = self.front.clone();
+
+        ConsList{
+            front: Some(Rc::new(new_node)),
+            length: self.len() + 1,
+        }
+    }
+
+    /// Returns a reference to the first element in the list
+    pub fn head (&self) -> Option<&T> {
+        self.front.as_ref().map(|node| &node.elem)
+    }
+
+    /// Returns a copy of the list, with the first element removed
+    pub fn tail (&self) -> ConsList<T> {
+        self.tailn(1)
+    }
+
+    /// Returns a copy of the list, with the first `n` elements removed
+    pub fn tailn (&self, n: usize) -> ConsList<T> {
+        if self.len() <= n {
+            ConsList::new()
+        } else {
+            let len = self.len() - n;
+            let mut head = self.front.as_ref();
+            for _ in 0..n {
+                head = head.unwrap().next.as_ref();
+            }
+            ConsList {
+                front: Some(head.unwrap().clone()),
+                length: len,
             }
         }
-
-        // Couldn't insert, gotta make a new back
-        let mut new_block = make_block(b);
-        new_block.push_back(elem);
-        self.list.push_back(new_block);
     }
 
-    /// Inserts the element at the front of the list.
-    pub fn push_front(&mut self, elem: T) {
-        self.len = self.len.checked_add(1).expect("capacity overflow");
-        let b = self.b;
-        let max = block_max(b);
-        if let Some(block) = self.list.front_mut() {
-            if block.len() < max {
-                block.push_front(elem);
-                return;
-            }
+    /// Returns the last element in the list
+    pub fn last (&self) -> Option<&T> {
+        self.iter().last()
+    }
+
+    /// Returns a copy of the list, with only the last `n` elements remaining
+    pub fn lastn (&self, n: usize) -> ConsList<T> {
+        if n >= self.length {
+            self.clone()
+        } else {
+            self.tailn(self.length - n)
         }
 
-        // Couldn't insert, gotta make a new front
-        let mut new_block = make_block(b);
-        new_block.push_front(elem);
-        self.list.push_front(new_block);
     }
 
-    /// Removes and returns an element off the back of the list. Returns None if empty.
-    pub fn pop_back(&mut self) -> Option<T> {
-        let (result, should_pop) = match self.list.back_mut() {
-            None => (None, false),
-            Some(block) => (block.pop_back(), block.is_empty()),
-        };
-
-        if should_pop {
-            self.list.pop_back();
-        }
-
-        if result.is_some() {
-            self.len -= 1;
-        }
-
-        result
+    /// Returns an iterator over references to the elements of the list in order
+    pub fn iter <'a> (&'a self) -> Iter<'a, T> {
+        Iter{ head: self.front.as_ref().map(|x| &**x), nelem: self.len() }
     }
 
-    /// Removes and returns an element off the front of the list. Returns None if empty.
-    pub fn pop_front(&mut self) -> Option<T> {
-        let (result, should_pop) = match self.list.front_mut() {
-            None => (None, false),
-            Some(block) => (block.pop_front(), block.is_empty()),
-        };
-
-        if should_pop {
-            self.list.pop_front();
-        }
-
-        if result.is_some() {
-            self.len -= 1;
-        }
-
-        result
+    pub fn len (&self) -> usize {
+        self.length
     }
 
-    /// Gets an immutable reference to the first element in the list.
-    pub fn front(&self) -> Option<&T> {
-        self.list.front().and_then(|block| block.front())
-    }
-
-    /// Gets an immutable reference to the last element in the list.
-    pub fn back(&self) -> Option<&T> {
-        self.list.back().and_then(|block| block.back())
-    }
-
-    /// Gets a mutable reference to the first element in the list.
-    pub fn front_mut(&mut self) -> Option<&mut T> {
-        self.list.front_mut().and_then(|block| block.front_mut())
-    }
-
-    /// Gets a mutable reference to the last element in the list.
-    pub fn back_mut(&mut self) -> Option<&mut T> {
-        self.list.back_mut().and_then(|block| block.back_mut())
-    }
-
-    /// Gets the number of elements in the list.
-    pub fn len(&self) -> usize {
-        self.len
-    }
-
-    /// Returns `true` if the list contains no elements, or `false` otherwise.
     pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-
-    /// Drops everything in the list.
-    pub fn clear(&mut self) {
-        self.list.clear();
-    }
-
-    /// Gets a by-reference iterator over the elements in the list.
-    pub fn iter(&self) -> Iter<T> {
-        let len = self.len();
-        Iter(AbsIter {
-            list_iter: self.list.iter(),
-            right_block_iter: None,
-            left_block_iter: None,
-            len: len,
-        })
-    }
-
-    /// Gets a by-mutable-reference iterator over the elements in the list.
-    pub fn iter_mut(&mut self) -> IterMut<T> {
-        let len = self.len();
-        IterMut(AbsIter {
-            list_iter: self.list.iter_mut(),
-            right_block_iter: None,
-            left_block_iter: None,
-            len: len,
-        })
-    }
-
-    /// Gets a by-value iterator over the elements in the list.
-    pub fn into_iter(self) -> IntoIter<T> {
-        let len = self.len();
-        IntoIter(AbsIter {
-            list_iter: self.list.into_iter(),
-            right_block_iter: None,
-            left_block_iter: None,
-            len: len,
-        })
-    }
-
-    pub fn traversal(&self) -> Trav<T> {
-        Trav { list: self }
-    }
-
-    pub fn traversal_mut(&mut self) -> TravMut<T> {
-        TravMut { list: self }
-    }
-
-    pub fn into_traversal(self) -> IntoTrav<T> {
-        IntoTrav { list: self }
-    }
-
-    /// Lazily moves the contents of `other` to the end of `self`, in the sense that it makes no
-    /// effort to preserve the node-size lower-bound invariant. This can have negative effects
-    /// on the effeciency of the resulting list, but is otherwise much faster than a proper
-    /// invariant-preserving `append`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the lists have a different value of `B`.
-    pub fn append_lazy(&mut self, other: &mut BList<T>) {
-        assert!(self.b == other.b);
-        self.list.append(&mut other.list);
-        self.len += other.len;
-        other.len = 0;
+        return self.len() == 0
     }
 }
 
-impl<'a, T> IntoIterator for &'a BList<T> {
-    type Item = &'a T;
-    type IntoIter = Iter<'a, T>;
-    fn into_iter(self) -> Iter<'a, T> { self.iter() }
-}
-
-impl<'a, T> IntoIterator for &'a mut BList<T> {
-    type Item = &'a mut T;
-    type IntoIter = IterMut<'a, T>;
-    fn into_iter(self) -> IterMut<'a, T> { self.iter_mut() }
-}
-
-impl<T> IntoIterator for BList<T> {
-    type Item = T;
-    type IntoIter = IntoIter<T>;
-    fn into_iter(self) -> IntoIter<T> { self.into_iter() }
-}
-
-/// Makes a new block for insertion in the list.
-fn make_block<T>(b: usize) -> VecDeque<T> {
-     VecDeque::with_capacity(block_max(b))
-}
-
-/// Gets the largest a block is allowed to become.
-fn block_max(b: usize) -> usize {
-    b + 1
-}
-
-/// Gets the smallest a (non-end) block is allowed to become.
-#[allow(unused)]
-fn block_min(b: usize) -> usize {
-    b - 1
-}
-
-/// A by-ref iterator for a BList
-pub struct Iter<'a, T: 'a>
-    (AbsIter<linked_list::Iter<'a, VecDeque<T>>, vec_deque::Iter<'a, T>>);
-/// A by-mut-ref iterator for a BList
-pub struct IterMut<'a, T: 'a>
-    (AbsIter<linked_list::IterMut<'a, VecDeque<T>>, vec_deque::IterMut<'a, T>>);
-/// A by-value iterator for a BList
-pub struct IntoIter<T>
-    (AbsIter<linked_list::IntoIter<VecDeque<T>>, vec_deque::IntoIter<T>>);
-
-/// An iterator that abstracts over all three kinds of ownership for a BList
-struct AbsIter<LinkedListIter, VecDequeIter> {
-    list_iter: LinkedListIter,
-    left_block_iter: Option<VecDequeIter>,
-    right_block_iter: Option<VecDequeIter>,
-    len: usize,
-}
-
-impl<VecDequeIter, LinkedListIter> Iterator for AbsIter<LinkedListIter, VecDequeIter> where
-    VecDequeIter: Iterator,
-    LinkedListIter: Iterator,
-    LinkedListIter::Item: IntoIterator<IntoIter=VecDequeIter, Item=VecDequeIter::Item>
-{
-    type Item = VecDequeIter::Item;
-    // I would like to thank all my friends and the fact that Iterator::next doesn't
-    // borrow self, for this passing borrowck with minimal gymnastics
-    fn next(&mut self) -> Option<VecDequeIter::Item> {
-        if self.len > 0 { self.len -= 1; }
-        // Keep loopin' till we hit gold
+#[unsafe_destructor]
+impl<T> Drop for ConsList<T> {
+    fn drop (&mut self) {
+        // don't want to blow the stack with destructors,
+        // but also don't want to walk the whole list.
+        // So walk the list until we find a non-uniquely owned item
+        let mut head = self.front.take();
         loop {
-            // Try to read off the left iterator
-            let (ret, iter) = match self.left_block_iter.as_mut() {
-                // No left iterator, try to get one from the list iterator
-                None => match self.list_iter.next() {
-                    // No blocks left in the list, use the right iterator
-                    None => match self.right_block_iter.as_mut() {
-                        // Truly exhausted
-                        None => return None,
-                        // Got right iter; don't care about fixing right_block in forward iteration
-                        Some(iter) => return iter.next(),
-                    },
-                    // Got new block from list iterator, make it the new left iterator
-                    Some(block) => {
-                        let mut next_iter = block.into_iter();
-                        let next = next_iter.next();
-                        (next, Some(next_iter))
-                    },
+            let temp = head;
+            match temp {
+                Some(node) => match try_unwrap(node) {
+                    Ok(mut node) => {
+                        head = node.next.take();
+                    }
+                    _ => return,
                 },
-                Some(iter) => match iter.next() {
-                    // None out the iterator so we ask for a new one, or go to the right
-                    None => (None, None),
-                    Some(next) => return Some(next),
-                },
-            };
+                _ => return,
+            }
+        }
+    }
+}
 
-            // If we got here, we want to change what left_block_iter is, so do that
-            // Also, if we got a return value, return that. Otherwise, just loop until we do.
-            self.left_block_iter = iter;
-            if ret.is_some() {
-                return ret;
+
+impl<'a, T> Iterator for Iter<'a, T> {
+    type Item = &'a T;
+    fn next(&mut self) -> Option<&'a T> {
+        match self.head.take() {
+            None => None,
+            Some(head) => {
+                self.nelem -= 1;
+                self.head = head.next.as_ref().map(|next| &**next);
+                Some(&head.elem)
             }
         }
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        (self.len, Some(self.len))
+        (self.nelem, Some(self.nelem))
     }
 }
 
-impl<VecDequeIter, LinkedListIter> DoubleEndedIterator
-for AbsIter<LinkedListIter, VecDequeIter> where
-    VecDequeIter: DoubleEndedIterator,
-    LinkedListIter: DoubleEndedIterator,
-    LinkedListIter::Item: IntoIterator<IntoIter=VecDequeIter, Item=VecDequeIter::Item>
-{
-    // see `next` for details. This should be an exact mirror.
-    fn next_back(&mut self) -> Option<VecDequeIter::Item> {
-        if self.len > 0 { self.len -= 1; }
-        loop {
-            let (ret, iter) = match self.right_block_iter.as_mut() {
-                None => match self.list_iter.next_back() {
-                    None => match self.left_block_iter.as_mut() {
-                        None => return None,
-                        Some(iter) => return iter.next_back(),
-                    },
-                    Some(block) => {
-                        let mut next_iter = block.into_iter();
-                        let next = next_iter.next_back();
-                        (next, Some(next_iter))
-                    },
-                },
-                Some(iter) => match iter.next_back() {
-                    None => (None, None),
-                    Some(next) => return Some(next),
-                },
-            };
-
-            self.right_block_iter = iter;
-            if ret.is_some() {
-                return ret;
-            }
+impl<T> iter::FromIterator<T> for ConsList<T> {
+    fn from_iter<I: IntoIterator<Item=T>>(iter: I) -> ConsList<T> {
+        let mut list = ConsList::new();
+        for elem in iter {
+            list = list.append(elem);
         }
+        list
     }
 }
 
-impl<'a, T> Iterator for Iter<'a, T> {
-    type Item = &'a T;
-    fn next(&mut self) -> Option<&'a T> { self.0.next() }
-    fn size_hint(&self) -> (usize, Option<usize>) { self.0.size_hint() }
-}
-impl<'a, T> DoubleEndedIterator for Iter<'a, T> {
-    fn next_back(&mut self) -> Option<&'a T> { self.0.next_back() }
-}
-impl<'a, T> ExactSizeIterator for Iter<'a, T> {}
-
-impl<'a, T> Iterator for IterMut<'a, T> {
-    type Item = &'a mut T;
-    fn next(&mut self) -> Option<&'a mut T> { self.0.next() }
-    fn size_hint(&self) -> (usize, Option<usize>) { self.0.size_hint() }
-}
-impl<'a, T> DoubleEndedIterator for IterMut<'a, T> {
-    fn next_back(&mut self) -> Option<&'a mut T> { self.0.next_back() }
-}
-impl<'a, T> ExactSizeIterator for IterMut<'a, T> {}
-
-impl<T> Iterator for IntoIter<T> {
-    type Item = T;
-    fn next(&mut self) -> Option<T> { self.0.next() }
-    fn size_hint(&self) -> (usize, Option<usize>) { self.0.size_hint() }
-}
-impl<T> DoubleEndedIterator for IntoIter<T> {
-    fn next_back(&mut self) -> Option<T> { self.0.next_back() }
-}
-impl<T> ExactSizeIterator for IntoIter<T> {}
-
-pub struct Trav<'a, T: 'a> {
-    list: &'a BList<T>,
-}
-
-pub struct TravMut<'a, T: 'a> {
-    list: &'a mut BList<T>,
-}
-
-pub struct IntoTrav<T> {
-    list: BList<T>,
-}
-
-impl<'a, T> Traversal for Trav<'a, T> {
-    type Item = &'a T;
-
-    fn foreach<F>(self, mut f: F) where F: FnMut(&'a T) -> bool {
-        for node in self.list.list.iter() {
-            for elem in node.iter() {
-                if f(elem) { return; }
-            }
-        }
-    }
-}
-
-impl<'a, T> Traversal for TravMut<'a, T> {
-    type Item = &'a mut T;
-
-    fn foreach<F>(self, mut f: F) where F: FnMut(&'a mut T) -> bool {
-        for node in self.list.list.iter_mut() {
-            for elem in node.iter_mut() {
-                if f(elem) { return; }
-            }
-        }
-    }
-}
-
-impl<T> Traversal for IntoTrav<T> {
-    type Item = T;
-
-    fn foreach<F>(self, mut f: F) where F: FnMut(T) -> bool {
-        for node in self.list.list.into_iter() {
-            for elem in node.into_iter() {
-                if f(elem) { return; }
-            }
-        }
-    }
-}
-
-impl<A> iter::FromIterator<A> for BList<A> {
-    fn from_iter<T: IntoIterator<Item=A>>(iter: T) -> BList<A> {
-        let mut ret = BList::new();
-        ret.extend(iter);
-        ret
-    }
-}
-
-impl<A> Extend<A> for BList<A> {
-    fn extend<T: IntoIterator<Item=A>>(&mut self, iter: T) {
-        for elt in iter { self.push_back(elt); }
-    }
-}
-
-impl<A: PartialEq> PartialEq for BList<A> {
-    fn eq(&self, other: &BList<A>) -> bool {
+impl<T: PartialEq> PartialEq for ConsList<T> {
+    fn eq(&self, other: &ConsList<T>) -> bool {
         self.len() == other.len() &&
-            iter::order::eq(self.iter(), other.iter())
+            std::iter::order::eq(self.iter(), other.iter())
     }
 
-    fn ne(&self, other: &BList<A>) -> bool {
+    fn ne(&self, other: &ConsList<T>) -> bool {
         self.len() != other.len() ||
-            iter::order::ne(self.iter(), other.iter())
+            std::iter::order::ne(self.iter(), other.iter())
     }
 }
 
-impl<A: Eq> Eq for BList<A> {}
-
-impl<A: PartialOrd> PartialOrd for BList<A> {
-    fn partial_cmp(&self, other: &BList<A>) -> Option<Ordering> {
-        iter::order::partial_cmp(self.iter(), other.iter())
+impl<T: PartialOrd> PartialOrd for ConsList<T> {
+    fn partial_cmp(&self, other: &ConsList<T>) -> Option<Ordering> {
+        std::iter::order::partial_cmp(self.iter(), other.iter())
     }
 }
 
-impl<A: Ord> Ord for BList<A> {
-    #[inline]
-    fn cmp(&self, other: &BList<A>) -> Ordering {
-        iter::order::cmp(self.iter(), other.iter())
+impl <T> Clone for ConsList<T> {
+    fn clone(&self) -> ConsList<T> {
+        ConsList {
+            front: self.front.clone(),
+            length: self.length,
+        }
     }
 }
 
-impl<A: fmt::Debug> fmt::Debug for BList<A> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl<T: std::fmt::Debug> std::fmt::Debug for ConsList<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         try!(write!(f, "["));
 
         for (i, e) in self.iter().enumerate() {
@@ -511,7 +208,7 @@ impl<A: fmt::Debug> fmt::Debug for BList<A> {
     }
 }
 
-impl<A: Hash> Hash for BList<A> {
+impl<A: Hash> Hash for ConsList<A> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.len().hash(state);
         for elt in self.iter() {
@@ -520,59 +217,71 @@ impl<A: Hash> Hash for BList<A> {
     }
 }
 
-
+impl<'a, T> IntoIterator for &'a ConsList<T> {
+    type Item = &'a T;
+    type IntoIter = Iter<'a, T>;
+    fn into_iter(self) -> Iter<'a, T> { self.iter() }
+}
 
 #[cfg(test)]
 mod tests {
-    use super::BList;
     use std::hash;
+    use test::Bencher;
+    use test;
 
-    fn generate_test() -> BList<i32> {
-        list_from(&[0,1,2,3,4,5,6])
-    }
-
-    fn list_from<T: Clone>(v: &[T]) -> BList<T> {
-        v.iter().map(|x| (*x).clone()).collect()
-    }
+    use super::ConsList;
 
     #[test]
     fn test_basic() {
-        let mut m = BList::new();
-        assert_eq!(m.pop_front(), None);
-        assert_eq!(m.pop_back(), None);
-        assert_eq!(m.pop_front(), None);
-        m.push_front(box 1);
-        assert_eq!(m.pop_front(), Some(box 1));
-        m.push_back(box 2);
-        m.push_back(box 3);
+        let mut m = ConsList::new();
+        assert_eq!(m.head(), None);
+        assert_eq!(m.tail().head(), None);
+        m = m.append(box 1);
+        assert_eq!(m.head().unwrap(), & box 1);
+        m = m.tail().append(box 2).append(box 3);
         assert_eq!(m.len(), 2);
-        assert_eq!(m.pop_front(), Some(box 2));
-        assert_eq!(m.pop_front(), Some(box 3));
+        assert_eq!(m.head().unwrap(), & box 3);
+        m = m.tail();
+        assert_eq!(m.head().unwrap(), & box 2);
+        m = m.tail();
         assert_eq!(m.len(), 0);
-        assert_eq!(m.pop_front(), None);
-        m.push_back(box 1);
-        m.push_back(box 3);
-        m.push_back(box 5);
-        m.push_back(box 7);
-        assert_eq!(m.pop_front(), Some(box 1));
+        assert_eq!(m.head(), None);
+        m = m.append(box 7).append(box 5).append(box 3).append(box 1);
+        assert_eq!(m.head().unwrap(), & box 1);
+    }
 
-        let mut n = BList::new();
-        n.push_front(2);
-        n.push_front(3);
-        {
-            assert_eq!(n.front().unwrap(), &3);
-            let x = n.front_mut().unwrap();
-            assert_eq!(*x, 3);
-            *x = 0;
-        }
-        {
-            assert_eq!(n.back().unwrap(), &2);
-            let y = n.back_mut().unwrap();
-            assert_eq!(*y, 2);
-            *y = 1;
-        }
-        assert_eq!(n.pop_front(), Some(0));
-        assert_eq!(n.pop_front(), Some(1));
+    #[test]
+    fn test_tailn() {
+        let m = list_from(&[0,1,2,3,4,5]);
+        assert_eq!(m.tailn(0), m);
+        assert_eq!(m.tailn(3), m.tail().tail().tail());
+    }
+
+    #[test]
+    fn test_last() {
+        let mut m = list_from(&[0,1,2,3,4,5]);
+        assert_eq!(m.last().unwrap(), &5);
+
+        m = ConsList::new();
+        assert_eq!(m.last(), None);
+    }
+
+    #[test]
+    fn test_lastn() {
+        let m = list_from(&[0,1,2,3,4,5]);
+        assert_eq!(m.lastn(0).head(), None);
+        assert_eq!(m.lastn(8), m);
+        assert_eq!(m.lastn(4), m.tail().tail());
+    }
+
+    #[cfg(test)]
+    fn generate_test() -> ConsList<i32> {
+        list_from(&[0,1,2,3,4,5,6])
+    }
+
+    #[cfg(test)]
+    fn list_from<T: Clone>(v: &[T]) -> ConsList<T> {
+        v.iter().rev().map(|x| (*x).clone()).collect()
     }
 
     #[test]
@@ -581,9 +290,9 @@ mod tests {
         for (i, elt) in m.iter().enumerate() {
             assert_eq!(i as i32, *elt);
         }
-        let mut n = BList::new();
+        let mut n = ConsList::new();
         assert_eq!(n.iter().next(), None);
-        n.push_front(4);
+        n = n.append(4);
         let mut it = n.iter();
         assert_eq!(it.size_hint(), (1, Some(1)));
         assert_eq!(it.next().unwrap(), &4);
@@ -591,88 +300,25 @@ mod tests {
         assert_eq!(it.next(), None);
     }
 
-
     #[test]
-    fn test_iterator_double_end() {
-        let mut n = BList::new();
-        assert_eq!(n.iter().next(), None);
-        n.push_front(4);
-        n.push_front(5);
-        n.push_front(6);
+    fn test_iterator_clone() {
+        let mut n = ConsList::new();
+        n = n.append(1).append(2).append(3);
         let mut it = n.iter();
-        assert_eq!(it.size_hint(), (3, Some(3)));
-        assert_eq!(it.next().unwrap(), &6);
-        assert_eq!(it.size_hint(), (2, Some(2)));
-        assert_eq!(it.next_back().unwrap(), &4);
-        assert_eq!(it.size_hint(), (1, Some(1)));
-        assert_eq!(it.next_back().unwrap(), &5);
-        assert_eq!(it.next_back(), None);
-        assert_eq!(it.next(), None);
-    }
-
-    #[test]
-    fn test_rev_iter() {
-        let m = generate_test();
-        for (i, elt) in m.iter().rev().enumerate() {
-            assert_eq!(6 - i as i32, *elt);
-        }
-        let mut n = BList::new();
-        assert_eq!(n.iter().rev().next(), None);
-        n.push_front(4);
-        let mut it = n.iter().rev();
-        assert_eq!(it.size_hint(), (1, Some(1)));
-        assert_eq!(it.next().unwrap(), &4);
-        assert_eq!(it.size_hint(), (0, Some(0)));
-        assert_eq!(it.next(), None);
-    }
-
-    #[test]
-    fn test_mut_iter() {
-        let mut m = generate_test();
-        let mut len = m.len();
-        for (i, elt) in m.iter_mut().enumerate() {
-            assert_eq!(i as i32, *elt);
-            len -= 1;
-        }
-        assert_eq!(len, 0);
-        let mut n = BList::new();
-        assert!(n.iter_mut().next().is_none());
-        n.push_front(4);
-        n.push_back(5);
-        let mut it = n.iter_mut();
-        assert_eq!(it.size_hint(), (2, Some(2)));
-        assert!(it.next().is_some());
-        assert!(it.next().is_some());
-        assert_eq!(it.size_hint(), (0, Some(0)));
-        assert!(it.next().is_none());
-    }
-
-    #[test]
-    fn test_iterator_mut_double_end() {
-        let mut n = BList::new();
-        assert!(n.iter_mut().next_back().is_none());
-        n.push_front(4);
-        n.push_front(5);
-        n.push_front(6);
-        let mut it = n.iter_mut();
-        assert_eq!(it.size_hint(), (3, Some(3)));
-        assert_eq!(*it.next().unwrap(), 6);
-        assert_eq!(it.size_hint(), (2, Some(2)));
-        assert_eq!(*it.next_back().unwrap(), 4);
-        assert_eq!(it.size_hint(), (1, Some(1)));
-        assert_eq!(*it.next_back().unwrap(), 5);
-        assert!(it.next_back().is_none());
-        assert!(it.next().is_none());
+        it.next();
+        let mut jt = it.clone();
+        assert_eq!(it.next(), jt.next());
+        assert_eq!(it.next(), jt.next());
     }
 
     #[test]
     fn test_eq() {
-        let mut n: BList<u8> = list_from(&[]);
+        let mut n: ConsList<u8> = list_from(&[]);
         let mut m = list_from(&[]);
         assert!(n == m);
-        n.push_front(1);
+        n = n.append(1);
         assert!(n != m);
-        m.push_back(1);
+        m = m.append(1);
         assert!(n == m);
 
         let n = list_from(&[2,3,4]);
@@ -682,18 +328,13 @@ mod tests {
 
     #[test]
     fn test_hash() {
-      let mut x = BList::new();
-      let mut y = BList::new();
+      let mut x = ConsList::new();
+      let mut y = ConsList::new();
 
       assert!(hash::hash::<_, hash::SipHasher>(&x) == hash::hash::<_, hash::SipHasher>(&y));
 
-      x.push_back(1);
-      x.push_back(2);
-      x.push_back(3);
-
-      y.push_front(3);
-      y.push_front(2);
-      y.push_front(1);
+      x = x.append(1).append(2).append(3);
+      y = y.append(1).append(4).tail().append(2).append(3);
 
       assert!(hash::hash::<_, hash::SipHasher>(&x) == hash::hash::<_, hash::SipHasher>(&y));
     }
@@ -742,134 +383,46 @@ mod tests {
 
     #[test]
     fn test_debug() {
-        let list: BList<i32> = (0..10).collect();
+        let list: ConsList<i32> = (0..10).rev().collect();
         assert_eq!(format!("{:?}", list), "[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]");
 
-        let list: BList<&str> = vec!["just", "one", "test", "more"].iter()
+        let list: ConsList<&str> = vec!["just", "one", "test", "more"].iter()
+                                                                   .rev()
                                                                    .map(|&s| s)
                                                                    .collect();
         assert_eq!(format!("{:?}", list), r#"["just", "one", "test", "more"]"#);
     }
 
-    #[test]
-    fn test_append_lazy() {
-        let mut u = list_from(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
-        let mut v = list_from(&[10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110]);
-        let w = list_from(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-                            10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110]);
-        let x = list_from(&[]);
-
-        // Normal append
-        u.append_lazy(&mut v);
-        assert_eq!(u.len(), 22);
-        assert_eq!(v.len(), 0);
-        assert_eq!(u, w);
-        assert_eq!(v, x);
-
-        // no-op append
-        u.append_lazy(&mut v);
-        assert_eq!(u.len(), 22);
-        assert_eq!(v.len(), 0);
-        assert_eq!(u, w);
-        assert_eq!(v, x);
-
-        // append into empty
-        v.append_lazy(&mut u);
-        assert_eq!(v.len(), 22);
-        assert_eq!(u.len(), 0);
-        assert_eq!(v, w);
-        assert_eq!(u, x);
-    }
-}
-
-#[cfg(test)]
-mod bench{
-    use super::BList;
-    use test;
-    use traverse::Traversal;
-
     #[bench]
     fn bench_collect_into(b: &mut test::Bencher) {
         let v = &[0i32; 64];
         b.iter(|| {
-            let _: BList<i32> = v.iter().map(|x| *x).collect();
+            let _: ConsList<i32> = v.iter().map(|x| *x).collect();
         })
     }
 
     #[bench]
-    fn bench_push_front(b: &mut test::Bencher) {
-        let mut m: BList<i32> = BList::new();
+    fn bench_append(b: &mut test::Bencher) {
+        let mut m: ConsList<i32> = ConsList::new();
         b.iter(|| {
-            m.push_front(0);
+            m = m.append(0);
         })
     }
 
     #[bench]
-    fn bench_push_back(b: &mut test::Bencher) {
-        let mut m: BList<i32> = BList::new();
+    fn bench_append_tail(b: &mut test::Bencher) {
+        let mut m: ConsList<i32> = ConsList::new();
         b.iter(|| {
-            m.push_back(0);
-        })
-    }
-
-    #[bench]
-    fn bench_push_back_pop_back(b: &mut test::Bencher) {
-        let mut m: BList<i32> = BList::new();
-        b.iter(|| {
-            m.push_back(0);
-            m.pop_back();
-        })
-    }
-
-    #[bench]
-    fn bench_push_front_pop_front(b: &mut test::Bencher) {
-        let mut m: BList<i32> = BList::new();
-        b.iter(|| {
-            m.push_front(0);
-            m.pop_front();
+            m = m.append(0).tail();
         })
     }
 
     #[bench]
     fn bench_iter(b: &mut test::Bencher) {
         let v = &[0; 128];
-        let m: BList<i32> = v.iter().map(|&x|x).collect();
+        let m: ConsList<i32> = v.iter().map(|&x|x).collect();
         b.iter(|| {
             assert!(m.iter().count() == 128);
-        })
-    }
-    #[bench]
-    fn bench_iter_mut(b: &mut test::Bencher) {
-        let v = &[0; 128];
-        let mut m: BList<i32> = v.iter().map(|&x|x).collect();
-        b.iter(|| {
-            assert!(m.iter_mut().count() == 128);
-        })
-    }
-
-    #[bench]
-    fn bench_iter_rev(b: &mut test::Bencher) {
-        let v = &[0; 128];
-        let m: BList<i32> = v.iter().map(|&x|x).collect();
-        b.iter(|| {
-            assert!(m.iter().rev().count() == 128);
-        })
-    }
-    #[bench]
-    fn bench_iter_mut_rev(b: &mut test::Bencher) {
-        let v = &[0; 128];
-        let mut m: BList<i32> = v.iter().map(|&x|x).collect();
-        b.iter(|| {
-            assert!(m.iter_mut().rev().count() == 128);
-        })
-    }
-
-    #[bench]
-    fn bench_trav(b: &mut test::Bencher) {
-        let v = &[0; 128];
-        let m: BList<i32> = v.iter().map(|&x|x).collect();
-        b.iter(|| {
-            assert!(m.traversal().count() == 128);
         })
     }
 }
