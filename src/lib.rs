@@ -10,10 +10,15 @@
 
 //! An immutable singly-linked list, as seen in basically every functional language.
 
-#![feature(box_syntax, unsafe_destructor, core, alloc)]
-#![cfg_attr(test, feature(test, hash))]
+// rc::try_unwrap and iter::cmp
+// only try_unwrap is really fundamental, but might as well keep iter::cmp while we
+// have to be on nightly
+#![feature(alloc, core)]
 
+#![cfg_attr(test, feature(test, hash))]
 #[cfg(test)] extern crate test;
+
+
 
 use std::cmp::Ordering;
 use std::iter::{self, IntoIterator};
@@ -117,7 +122,6 @@ impl<T> ConsList<T> {
     }
 }
 
-#[unsafe_destructor]
 impl<T> Drop for ConsList<T> {
     fn drop (&mut self) {
         // don't want to blow the stack with destructors,
@@ -226,8 +230,6 @@ impl<'a, T> IntoIterator for &'a ConsList<T> {
 #[cfg(test)]
 mod tests {
     use std::hash;
-    use test::Bencher;
-    use test;
 
     use super::ConsList;
 
@@ -236,18 +238,18 @@ mod tests {
         let mut m = ConsList::new();
         assert_eq!(m.head(), None);
         assert_eq!(m.tail().head(), None);
-        m = m.append(box 1);
-        assert_eq!(m.head().unwrap(), & box 1);
-        m = m.tail().append(box 2).append(box 3);
+        m = m.append(Box::new(1));
+        assert_eq!(**m.head().unwrap(), 1);
+        m = m.tail().append(Box::new(2)).append(Box::new(3));
         assert_eq!(m.len(), 2);
-        assert_eq!(m.head().unwrap(), & box 3);
+        assert_eq!(**m.head().unwrap(), 3);
         m = m.tail();
-        assert_eq!(m.head().unwrap(), & box 2);
+        assert_eq!(**m.head().unwrap(), 2);
         m = m.tail();
         assert_eq!(m.len(), 0);
         assert_eq!(m.head(), None);
-        m = m.append(box 7).append(box 5).append(box 3).append(box 1);
-        assert_eq!(m.head().unwrap(), & box 1);
+        m = m.append(Box::new(7)).append(Box::new(5)).append(Box::new(3)).append(Box::new(1));
+        assert_eq!(**m.head().unwrap(), 1);
     }
 
     #[test]
@@ -392,6 +394,14 @@ mod tests {
                                                                    .collect();
         assert_eq!(format!("{:?}", list), r#"["just", "one", "test", "more"]"#);
     }
+}
+
+#[cfg(test)]
+mod bench {
+    use test::Bencher;
+    use test;
+
+    use super::ConsList;
 
     #[bench]
     fn bench_collect_into(b: &mut test::Bencher) {
