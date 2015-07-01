@@ -10,19 +10,16 @@
 
 //! An immutable singly-linked list, as seen in basically every functional language.
 
-// rc::try_unwrap and iter::cmp
-// only try_unwrap is really fundamental, but might as well keep iter::cmp while we
-// have to be on nightly
-#![feature(alloc, core)]
+#![feature(iter_order, rc_unique)]
 
-#![cfg_attr(test, feature(test, hash))]
+#![cfg_attr(test, feature(test, hash_default))]
 #[cfg(test)] extern crate test;
 
 
 
 use std::cmp::Ordering;
-use std::iter::{self, IntoIterator};
-use std::rc::{try_unwrap, Rc};
+use std::iter;
+use std::rc::Rc;
 use std::hash::{Hash, Hasher};
 
 struct Node<T> {
@@ -131,7 +128,7 @@ impl<T> Drop for ConsList<T> {
         loop {
             let temp = head;
             match temp {
-                Some(node) => match try_unwrap(node) {
+                Some(node) => match Rc::try_unwrap(node) {
                     Ok(mut node) => {
                         head = node.next.take();
                     }
