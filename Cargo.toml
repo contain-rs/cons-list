@@ -1,7 +1,7 @@
 [package]
 
 name = "cons-list"
-version = "0.0.1"
+version = "0.0.2"
 license = "MIT/Apache-2.0"
 description = "An immutable singly-linked list, as seen in basically every functional language"
 authors = [
