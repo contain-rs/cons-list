@@ -9,7 +9,10 @@
 
     <title>lib.rs.html -- source</title>
 
+    <link rel="stylesheet" type="text/css" href="../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../main.css">
+    
 
     
     
@@ -24,17 +27,17 @@
 
     
 
-    <section class="sidebar">
+    <nav class="sidebar">
         
         
-    </section>
+    </nav>
 
     <nav class="sub">
         <form class="search-form js-only">
             <div class="search-container">
                 <input class="search-input" name="search"
                        autocomplete="off"
-                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
                        type="search">
             </div>
         </form>
@@ -475,493 +478,550 @@
 <span id="433">433</span>
 <span id="434">434</span>
 <span id="435">435</span>
-</pre><pre class='rust '>
-<span class='comment'>// Copyright 2015 The Rust Project Developers. See the COPYRIGHT</span>
-<span class='comment'>// file at the top-level directory of this distribution and at</span>
-<span class='comment'>// http://rust-lang.org/COPYRIGHT.</span>
-<span class='comment'>//</span>
-<span class='comment'>// Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or</span>
-<span class='comment'>// http://www.apache.org/licenses/LICENSE-2.0&gt; or the MIT license</span>
-<span class='comment'>// &lt;LICENSE-MIT or http://opensource.org/licenses/MIT&gt;, at your</span>
-<span class='comment'>// option. This file may not be copied, modified, or distributed</span>
-<span class='comment'>// except according to those terms.</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+</pre><pre class="rust ">
+<span class="comment">// Copyright 2015 The Rust Project Developers. See the COPYRIGHT</span>
+<span class="comment">// file at the top-level directory of this distribution and at</span>
+<span class="comment">// http://rust-lang.org/COPYRIGHT.</span>
+<span class="comment">//</span>
+<span class="comment">// Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or</span>
+<span class="comment">// http://www.apache.org/licenses/LICENSE-2.0&gt; or the MIT license</span>
+<span class="comment">// &lt;LICENSE-MIT or http://opensource.org/licenses/MIT&gt;, at your</span>
+<span class="comment">// option. This file may not be copied, modified, or distributed</span>
+<span class="comment">// except according to those terms.</span>
 
-<span class='doccomment'>//! An immutable singly-linked list, as seen in basically every functional language.</span>
+<span class="doccomment">//! An immutable singly-linked list, as seen in basically every functional language.</span>
 
-<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>iter_order</span>, <span class='ident'>rc_unique</span>)]</span>
-
-<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>cfg_attr</span>(<span class='ident'>test</span>, <span class='ident'>feature</span>(<span class='ident'>test</span>, <span class='ident'>hash_default</span>))]</span>
-<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>test</span>)]</span> <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>test</span>;
-
+<span class="attribute">#<span class="op">!</span>[<span class="ident">cfg_attr</span>(<span class="ident">test</span>, <span class="ident">feature</span>(<span class="ident">test</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">test</span>;
 
 
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>cmp</span>::<span class='ident'>Ordering</span>;
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>iter</span>;
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>rc</span>::<span class='ident'>Rc</span>;
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>hash</span>::{<span class='ident'>Hash</span>, <span class='ident'>Hasher</span>};
 
-<span class='kw'>struct</span> <span class='ident'>Node</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='ident'>elem</span>: <span class='ident'>T</span>,
-    <span class='ident'>next</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Rc</span><span class='op'>&lt;</span><span class='ident'>Node</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span><span class='op'>&gt;</span>,
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">Ordering</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">iter</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>};
+
+<span class="kw">struct</span> <span class="ident">Node</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="ident">elem</span>: <span class="ident">T</span>,
+    <span class="ident">next</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>,
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Node</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>elem</span>: <span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='ident'>Node</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-        <span class='ident'>Node</span> { <span class='ident'>elem</span>: <span class='ident'>elem</span>, <span class='ident'>next</span>: <span class='prelude-val'>None</span> }
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Node</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">elem</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="ident">Node</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="ident">Node</span> {
+            <span class="ident">elem</span>: <span class="ident">elem</span>,
+            <span class="ident">next</span>: <span class="prelude-val">None</span>,
+        }
     }
 }
 
-<span class='doccomment'>/// An iterator over the items of an ConsList</span>
-<span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Clone</span>)]</span>
-<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Iter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>: <span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> {
-    <span class='ident'>head</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>Node</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span>,
-    <span class='ident'>nelem</span>: <span class='ident'>usize</span>,
+<span class="doccomment">/// An iterator over the items of an ConsList</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="ident">head</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Node</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">nelem</span>: <span class="ident">usize</span>,
 }
 
-<span class='doccomment'>/// An immutable singly-linked list, as seen in basically every functional language</span>
-<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='ident'>front</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Rc</span><span class='op'>&lt;</span><span class='ident'>Node</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span><span class='op'>&gt;</span>,
-    <span class='ident'>length</span>: <span class='ident'>usize</span>,
+<span class="doccomment">/// An immutable singly-linked list, as seen in basically every functional language</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="ident">front</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">length</span>: <span class="ident">usize</span>,
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='doccomment'>/// Constructs a new, empty `ConsList`</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span> () <span class='op'>-&gt;</span> <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-        <span class='ident'>ConsList</span>{ <span class='ident'>front</span>: <span class='prelude-val'>None</span>, <span class='ident'>length</span>: <span class='number'>0</span> }
-    }
-
-    <span class='doccomment'>/// Returns a copy of the list, with `elem` appended to the front</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>append</span> (<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>elem</span>: <span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>{
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>new_node</span> <span class='op'>=</span> <span class='ident'>Node</span>::<span class='ident'>new</span>(<span class='ident'>elem</span>);
-        <span class='ident'>new_node</span>.<span class='ident'>next</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>front</span>.<span class='ident'>clone</span>();
-
-        <span class='ident'>ConsList</span>{
-            <span class='ident'>front</span>: <span class='prelude-val'>Some</span>(<span class='ident'>Rc</span>::<span class='ident'>new</span>(<span class='ident'>new_node</span>)),
-            <span class='ident'>length</span>: <span class='self'>self</span>.<span class='ident'>len</span>() <span class='op'>+</span> <span class='number'>1</span>,
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Constructs a new, empty `ConsList`</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="ident">ConsList</span> {
+            <span class="ident">front</span>: <span class="prelude-val">None</span>,
+            <span class="ident">length</span>: <span class="number">0</span>,
         }
     }
 
-    <span class='doccomment'>/// Returns a reference to the first element in the list</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>head</span> (<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-        <span class='self'>self</span>.<span class='ident'>front</span>.<span class='ident'>as_ref</span>().<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>node</span><span class='op'>|</span> <span class='kw-2'>&amp;</span><span class='ident'>node</span>.<span class='ident'>elem</span>)
+    <span class="doccomment">/// Returns a copy of the list, with `elem` appended to the front</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">elem</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_node</span> <span class="op">=</span> <span class="ident">Node</span>::<span class="ident">new</span>(<span class="ident">elem</span>);
+        <span class="ident">new_node</span>.<span class="ident">next</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">front</span>.<span class="ident">clone</span>();
+
+        <span class="ident">ConsList</span> {
+            <span class="ident">front</span>: <span class="prelude-val">Some</span>(<span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">new_node</span>)),
+            <span class="ident">length</span>: <span class="self">self</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>,
+        }
     }
 
-    <span class='doccomment'>/// Returns a copy of the list, with the first element removed</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>tail</span> (<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-        <span class='self'>self</span>.<span class='ident'>tailn</span>(<span class='number'>1</span>)
+    <span class="doccomment">/// Returns a reference to the first element in the list</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">head</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">front</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">node</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">node</span>.<span class="ident">elem</span>)
     }
 
-    <span class='doccomment'>/// Returns a copy of the list, with the first `n` elements removed</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>tailn</span> (<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>n</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-        <span class='kw'>if</span> <span class='self'>self</span>.<span class='ident'>len</span>() <span class='op'>&lt;=</span> <span class='ident'>n</span> {
-            <span class='ident'>ConsList</span>::<span class='ident'>new</span>()
-        } <span class='kw'>else</span> {
-            <span class='kw'>let</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>len</span>() <span class='op'>-</span> <span class='ident'>n</span>;
-            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>head</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>front</span>.<span class='ident'>as_ref</span>();
-            <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='number'>0</span>..<span class='ident'>n</span> {
-                <span class='ident'>head</span> <span class='op'>=</span> <span class='ident'>head</span>.<span class='ident'>unwrap</span>().<span class='ident'>next</span>.<span class='ident'>as_ref</span>();
+    <span class="doccomment">/// Returns a copy of the list, with the first element removed</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tail</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">tailn</span>(<span class="number">1</span>)
+    }
+
+    <span class="doccomment">/// Returns a copy of the list, with the first `n` elements removed</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tailn</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">len</span>() <span class="op">&lt;=</span> <span class="ident">n</span> {
+            <span class="ident">ConsList</span>::<span class="ident">new</span>()
+        } <span class="kw">else</span> {
+            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">n</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">head</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">front</span>.<span class="ident">as_ref</span>();
+            <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="ident">n</span> {
+                <span class="ident">head</span> <span class="op">=</span> <span class="ident">head</span>.<span class="ident">unwrap</span>().<span class="ident">next</span>.<span class="ident">as_ref</span>();
             }
-            <span class='ident'>ConsList</span> {
-                <span class='ident'>front</span>: <span class='prelude-val'>Some</span>(<span class='ident'>head</span>.<span class='ident'>unwrap</span>().<span class='ident'>clone</span>()),
-                <span class='ident'>length</span>: <span class='ident'>len</span>,
+            <span class="ident">ConsList</span> {
+                <span class="ident">front</span>: <span class="prelude-val">Some</span>(<span class="ident">head</span>.<span class="ident">unwrap</span>().<span class="ident">clone</span>()),
+                <span class="ident">length</span>: <span class="ident">len</span>,
             }
         }
     }
 
-    <span class='doccomment'>/// Returns the last element in the list</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>last</span> (<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-        <span class='self'>self</span>.<span class='ident'>iter</span>().<span class='ident'>last</span>()
+    <span class="doccomment">/// Returns the last element in the list</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">iter</span>().<span class="ident">last</span>()
     }
 
-    <span class='doccomment'>/// Returns a copy of the list, with only the last `n` elements remaining</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>lastn</span> (<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>n</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-        <span class='kw'>if</span> <span class='ident'>n</span> <span class='op'>&gt;=</span> <span class='self'>self</span>.<span class='ident'>length</span> {
-            <span class='self'>self</span>.<span class='ident'>clone</span>()
-        } <span class='kw'>else</span> {
-            <span class='self'>self</span>.<span class='ident'>tailn</span>(<span class='self'>self</span>.<span class='ident'>length</span> <span class='op'>-</span> <span class='ident'>n</span>)
+    <span class="doccomment">/// Returns a copy of the list, with only the last `n` elements remaining</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lastn</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;=</span> <span class="self">self</span>.<span class="ident">length</span> {
+            <span class="self">self</span>.<span class="ident">clone</span>()
+        } <span class="kw">else</span> {
+            <span class="self">self</span>.<span class="ident">tailn</span>(<span class="self">self</span>.<span class="ident">length</span> <span class="op">-</span> <span class="ident">n</span>)
         }
 
     }
 
-    <span class='doccomment'>/// Returns an iterator over references to the elements of the list in order</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>iter</span> <span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> (<span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Iter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> {
-        <span class='ident'>Iter</span>{ <span class='ident'>head</span>: <span class='self'>self</span>.<span class='ident'>front</span>.<span class='ident'>as_ref</span>().<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>x</span><span class='op'>|</span> <span class='kw-2'>&amp;</span><span class='op'>*</span><span class='op'>*</span><span class='ident'>x</span>), <span class='ident'>nelem</span>: <span class='self'>self</span>.<span class='ident'>len</span>() }
+    <span class="doccomment">/// Returns an iterator over references to the elements of the list in order</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="ident">Iter</span> {
+            <span class="ident">head</span>: <span class="self">self</span>.<span class="ident">front</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">x</span>),
+            <span class="ident">nelem</span>: <span class="self">self</span>.<span class="ident">len</span>(),
+        }
     }
 
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>len</span> (<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
-        <span class='self'>self</span>.<span class='ident'>length</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="ident">length</span>
     }
 
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>is_empty</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
-        <span class='kw'>return</span> <span class='self'>self</span>.<span class='ident'>len</span>() <span class='op'>==</span> <span class='number'>0</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">return</span> <span class="self">self</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span>;
     }
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Drop</span> <span class='kw'>for</span> <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='kw'>fn</span> <span class='ident'>drop</span> (<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) {
-        <span class='comment'>// don&#39;t want to blow the stack with destructors,</span>
-        <span class='comment'>// but also don&#39;t want to walk the whole list.</span>
-        <span class='comment'>// So walk the list until we find a non-uniquely owned item</span>
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>head</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>front</span>.<span class='ident'>take</span>();
-        <span class='kw'>loop</span> {
-            <span class='kw'>let</span> <span class='ident'>temp</span> <span class='op'>=</span> <span class='ident'>head</span>;
-            <span class='kw'>match</span> <span class='ident'>temp</span> {
-                <span class='prelude-val'>Some</span>(<span class='ident'>node</span>) <span class='op'>=&gt;</span> <span class='kw'>match</span> <span class='ident'>Rc</span>::<span class='ident'>try_unwrap</span>(<span class='ident'>node</span>) {
-                    <span class='prelude-val'>Ok</span>(<span class='kw-2'>mut</span> <span class='ident'>node</span>) <span class='op'>=&gt;</span> {
-                        <span class='ident'>head</span> <span class='op'>=</span> <span class='ident'>node</span>.<span class='ident'>next</span>.<span class='ident'>take</span>();
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+        <span class="comment">// don&#39;t want to blow the stack with destructors,</span>
+        <span class="comment">// but also don&#39;t want to walk the whole list.</span>
+        <span class="comment">// So walk the list until we find a non-uniquely owned item</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">head</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">front</span>.<span class="ident">take</span>();
+        <span class="kw">loop</span> {
+            <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">head</span>;
+            <span class="kw">match</span> <span class="ident">temp</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">node</span>) <span class="op">=&gt;</span> {
+                    <span class="kw">match</span> <span class="ident">Rc</span>::<span class="ident">try_unwrap</span>(<span class="ident">node</span>) {
+                        <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">node</span>) <span class="op">=&gt;</span> {
+                            <span class="ident">head</span> <span class="op">=</span> <span class="ident">node</span>.<span class="ident">next</span>.<span class="ident">take</span>();
+                        }
+                        _ <span class="op">=&gt;</span> <span class="kw">return</span>,
                     }
-                    _ <span class='op'>=&gt;</span> <span class='kw'>return</span>,
-                },
-                _ <span class='op'>=&gt;</span> <span class='kw'>return</span>,
+                }
+                _ <span class="op">=&gt;</span> <span class="kw">return</span>,
             }
         }
     }
 }
 
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Iterator</span> <span class='kw'>for</span> <span class='ident'>Iter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='kw'>type</span> <span class='ident'>Item</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>T</span>;
-    <span class='kw'>fn</span> <span class='ident'>next</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>T</span><span class='op'>&gt;</span> {
-        <span class='kw'>match</span> <span class='self'>self</span>.<span class='ident'>head</span>.<span class='ident'>take</span>() {
-            <span class='prelude-val'>None</span> <span class='op'>=&gt;</span> <span class='prelude-val'>None</span>,
-            <span class='prelude-val'>Some</span>(<span class='ident'>head</span>) <span class='op'>=&gt;</span> {
-                <span class='self'>self</span>.<span class='ident'>nelem</span> <span class='op'>-=</span> <span class='number'>1</span>;
-                <span class='self'>self</span>.<span class='ident'>head</span> <span class='op'>=</span> <span class='ident'>head</span>.<span class='ident'>next</span>.<span class='ident'>as_ref</span>().<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>next</span><span class='op'>|</span> <span class='kw-2'>&amp;</span><span class='op'>*</span><span class='op'>*</span><span class='ident'>next</span>);
-                <span class='prelude-val'>Some</span>(<span class='kw-2'>&amp;</span><span class='ident'>head</span>.<span class='ident'>elem</span>)
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>;
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">head</span>.<span class="ident">take</span>() {
+            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">head</span>) <span class="op">=&gt;</span> {
+                <span class="self">self</span>.<span class="ident">nelem</span> <span class="op">-=</span> <span class="number">1</span>;
+                <span class="self">self</span>.<span class="ident">head</span> <span class="op">=</span> <span class="ident">head</span>.<span class="ident">next</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">next</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">next</span>);
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">head</span>.<span class="ident">elem</span>)
             }
         }
     }
 
-    <span class='kw'>fn</span> <span class='ident'>size_hint</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> (<span class='ident'>usize</span>, <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>) {
-        (<span class='self'>self</span>.<span class='ident'>nelem</span>, <span class='prelude-val'>Some</span>(<span class='self'>self</span>.<span class='ident'>nelem</span>))
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+        (<span class="self">self</span>.<span class="ident">nelem</span>, <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">nelem</span>))
     }
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>iter</span>::<span class='ident'>FromIterator</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='kw'>for</span> <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='kw'>fn</span> <span class='ident'>from_iter</span><span class='op'>&lt;</span><span class='ident'>I</span>: <span class='ident'>IntoIterator</span><span class='op'>&lt;</span><span class='ident'>Item</span><span class='op'>=</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span>(<span class='ident'>iter</span>: <span class='ident'>I</span>) <span class='op'>-&gt;</span> <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>list</span> <span class='op'>=</span> <span class='ident'>ConsList</span>::<span class='ident'>new</span>();
-        <span class='kw'>for</span> <span class='ident'>elem</span> <span class='kw'>in</span> <span class='ident'>iter</span> {
-            <span class='ident'>list</span> <span class='op'>=</span> <span class='ident'>list</span>.<span class='ident'>append</span>(<span class='ident'>elem</span>);
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">iter</span>::<span class="ident">FromIterator</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) <span class="op">-&gt;</span> <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">list</span> <span class="op">=</span> <span class="ident">ConsList</span>::<span class="ident">new</span>();
+        <span class="kw">for</span> <span class="ident">elem</span> <span class="kw">in</span> <span class="ident">iter</span> {
+            <span class="ident">list</span> <span class="op">=</span> <span class="ident">list</span>.<span class="ident">append</span>(<span class="ident">elem</span>);
         }
-        <span class='ident'>list</span>
+        <span class="ident">list</span>
     }
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span>: <span class='ident'>PartialEq</span><span class='op'>&gt;</span> <span class='ident'>PartialEq</span> <span class='kw'>for</span> <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='kw'>fn</span> <span class='ident'>eq</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>other</span>: <span class='kw-2'>&amp;</span><span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
-        <span class='self'>self</span>.<span class='ident'>len</span>() <span class='op'>==</span> <span class='ident'>other</span>.<span class='ident'>len</span>() <span class='op'>&amp;&amp;</span>
-            <span class='ident'>std</span>::<span class='ident'>iter</span>::<span class='ident'>order</span>::<span class='ident'>eq</span>(<span class='self'>self</span>.<span class='ident'>iter</span>(), <span class='ident'>other</span>.<span class='ident'>iter</span>())
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PartialEq</span><span class="op">&gt;</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">other</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">other</span>.<span class="ident">iter</span>()).<span class="ident">all</span>(<span class="op">|</span>(<span class="ident">x</span>, <span class="ident">y</span>)<span class="op">|</span> <span class="ident">x</span> <span class="op">==</span> <span class="ident">y</span>)
     }
 
-    <span class='kw'>fn</span> <span class='ident'>ne</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>other</span>: <span class='kw-2'>&amp;</span><span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
-        <span class='self'>self</span>.<span class='ident'>len</span>() <span class='op'>!=</span> <span class='ident'>other</span>.<span class='ident'>len</span>() <span class='op'>||</span>
-            <span class='ident'>std</span>::<span class='ident'>iter</span>::<span class='ident'>order</span>::<span class='ident'>ne</span>(<span class='self'>self</span>.<span class='ident'>iter</span>(), <span class='ident'>other</span>.<span class='ident'>iter</span>())
+    <span class="kw">fn</span> <span class="ident">ne</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">len</span>() <span class="op">!=</span> <span class="ident">other</span>.<span class="ident">len</span>() <span class="op">||</span> <span class="self">self</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">other</span>.<span class="ident">iter</span>()).<span class="ident">all</span>(<span class="op">|</span>(<span class="ident">x</span>, <span class="ident">y</span>)<span class="op">|</span> <span class="ident">x</span> <span class="op">!=</span> <span class="ident">y</span>)
     }
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span>: <span class='ident'>PartialOrd</span><span class='op'>&gt;</span> <span class='ident'>PartialOrd</span> <span class='kw'>for</span> <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='kw'>fn</span> <span class='ident'>partial_cmp</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>other</span>: <span class='kw-2'>&amp;</span><span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Ordering</span><span class='op'>&gt;</span> {
-        <span class='ident'>std</span>::<span class='ident'>iter</span>::<span class='ident'>order</span>::<span class='ident'>partial_cmp</span>(<span class='self'>self</span>.<span class='ident'>iter</span>(), <span class='ident'>other</span>.<span class='ident'>iter</span>())
-    }
-}
-
-<span class='kw'>impl</span> <span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Clone</span> <span class='kw'>for</span> <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='kw'>fn</span> <span class='ident'>clone</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-        <span class='ident'>ConsList</span> {
-            <span class='ident'>front</span>: <span class='self'>self</span>.<span class='ident'>front</span>.<span class='ident'>clone</span>(),
-            <span class='ident'>length</span>: <span class='self'>self</span>.<span class='ident'>length</span>,
-        }
-    }
-}
-
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span>: <span class='ident'>std</span>::<span class='ident'>fmt</span>::<span class='ident'>Debug</span><span class='op'>&gt;</span> <span class='ident'>std</span>::<span class='ident'>fmt</span>::<span class='ident'>Debug</span> <span class='kw'>for</span> <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='kw'>fn</span> <span class='ident'>fmt</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>f</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>std</span>::<span class='ident'>fmt</span>::<span class='ident'>Formatter</span>) <span class='op'>-&gt;</span> <span class='ident'>std</span>::<span class='ident'>fmt</span>::<span class='prelude-ty'>Result</span> {
-        <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;[&quot;</span>));
-
-        <span class='kw'>for</span> (<span class='ident'>i</span>, <span class='ident'>e</span>) <span class='kw'>in</span> <span class='self'>self</span>.<span class='ident'>iter</span>().<span class='ident'>enumerate</span>() {
-            <span class='kw'>if</span> <span class='ident'>i</span> <span class='op'>!=</span> <span class='number'>0</span> { <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;, &quot;</span>)); }
-            <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;{:?}&quot;</span>, <span class='op'>*</span><span class='ident'>e</span>));
-        }
-
-        <span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;]&quot;</span>)
-    }
-}
-
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>Hash</span><span class='op'>&gt;</span> <span class='ident'>Hash</span> <span class='kw'>for</span> <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>A</span><span class='op'>&gt;</span> {
-    <span class='kw'>fn</span> <span class='ident'>hash</span><span class='op'>&lt;</span><span class='ident'>H</span>: <span class='ident'>Hasher</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>state</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>H</span>) {
-        <span class='self'>self</span>.<span class='ident'>len</span>().<span class='ident'>hash</span>(<span class='ident'>state</span>);
-        <span class='kw'>for</span> <span class='ident'>elt</span> <span class='kw'>in</span> <span class='self'>self</span>.<span class='ident'>iter</span>() {
-            <span class='ident'>elt</span>.<span class='ident'>hash</span>(<span class='ident'>state</span>);
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PartialOrd</span><span class="op">&gt;</span> <span class="ident">PartialOrd</span> <span class="kw">for</span> <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ordering</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">iter</span>();
+        <span class="kw">loop</span> {
+            <span class="kw">match</span> (<span class="ident">a</span>.<span class="ident">next</span>(), <span class="ident">b</span>.<span class="ident">next</span>()) {
+                (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">Ordering</span>::<span class="ident">Equal</span>),
+                (<span class="prelude-val">None</span>, _) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">Ordering</span>::<span class="ident">Less</span>),
+                (_, <span class="prelude-val">None</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">Ordering</span>::<span class="ident">Greater</span>),
+                (<span class="prelude-val">Some</span>(<span class="ident">x</span>), <span class="prelude-val">Some</span>(<span class="ident">y</span>)) <span class="op">=&gt;</span> {
+                    <span class="kw">match</span> <span class="ident">x</span>.<span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>) {
+                        <span class="prelude-val">Some</span>(<span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">Ordering</span>::<span class="ident">Equal</span>) <span class="op">=&gt;</span> (),
+                        <span class="ident">non_eq</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">non_eq</span>,
+                    }
+                }
+            }
         }
     }
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>IntoIterator</span> <span class='kw'>for</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='kw'>type</span> <span class='ident'>Item</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>T</span>;
-    <span class='kw'>type</span> <span class='ident'>IntoIter</span> <span class='op'>=</span> <span class='ident'>Iter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span>;
-    <span class='kw'>fn</span> <span class='ident'>into_iter</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Iter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span> { <span class='self'>self</span>.<span class='ident'>iter</span>() }
-}
-
-<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>test</span>)]</span>
-<span class='kw'>mod</span> <span class='ident'>tests</span> {
-    <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>hash</span>;
-
-    <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>ConsList</span>;
-
-    <span class='attribute'>#[<span class='ident'>test</span>]</span>
-    <span class='kw'>fn</span> <span class='ident'>test_basic</span>() {
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>ConsList</span>::<span class='ident'>new</span>();
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>m</span>.<span class='ident'>head</span>(), <span class='prelude-val'>None</span>);
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>m</span>.<span class='ident'>tail</span>().<span class='ident'>head</span>(), <span class='prelude-val'>None</span>);
-        <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>m</span>.<span class='ident'>append</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='number'>1</span>));
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='op'>*</span><span class='op'>*</span><span class='ident'>m</span>.<span class='ident'>head</span>().<span class='ident'>unwrap</span>(), <span class='number'>1</span>);
-        <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>m</span>.<span class='ident'>tail</span>().<span class='ident'>append</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='number'>2</span>)).<span class='ident'>append</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='number'>3</span>));
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>m</span>.<span class='ident'>len</span>(), <span class='number'>2</span>);
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='op'>*</span><span class='op'>*</span><span class='ident'>m</span>.<span class='ident'>head</span>().<span class='ident'>unwrap</span>(), <span class='number'>3</span>);
-        <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>m</span>.<span class='ident'>tail</span>();
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='op'>*</span><span class='op'>*</span><span class='ident'>m</span>.<span class='ident'>head</span>().<span class='ident'>unwrap</span>(), <span class='number'>2</span>);
-        <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>m</span>.<span class='ident'>tail</span>();
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>m</span>.<span class='ident'>len</span>(), <span class='number'>0</span>);
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>m</span>.<span class='ident'>head</span>(), <span class='prelude-val'>None</span>);
-        <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>m</span>.<span class='ident'>append</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='number'>7</span>)).<span class='ident'>append</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='number'>5</span>)).<span class='ident'>append</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='number'>3</span>)).<span class='ident'>append</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='number'>1</span>));
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='op'>*</span><span class='op'>*</span><span class='ident'>m</span>.<span class='ident'>head</span>().<span class='ident'>unwrap</span>(), <span class='number'>1</span>);
-    }
-
-    <span class='attribute'>#[<span class='ident'>test</span>]</span>
-    <span class='kw'>fn</span> <span class='ident'>test_tailn</span>() {
-        <span class='kw'>let</span> <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>list_from</span>(<span class='kw-2'>&amp;</span>[<span class='number'>0</span>,<span class='number'>1</span>,<span class='number'>2</span>,<span class='number'>3</span>,<span class='number'>4</span>,<span class='number'>5</span>]);
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>m</span>.<span class='ident'>tailn</span>(<span class='number'>0</span>), <span class='ident'>m</span>);
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>m</span>.<span class='ident'>tailn</span>(<span class='number'>3</span>), <span class='ident'>m</span>.<span class='ident'>tail</span>().<span class='ident'>tail</span>().<span class='ident'>tail</span>());
-    }
-
-    <span class='attribute'>#[<span class='ident'>test</span>]</span>
-    <span class='kw'>fn</span> <span class='ident'>test_last</span>() {
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>list_from</span>(<span class='kw-2'>&amp;</span>[<span class='number'>0</span>,<span class='number'>1</span>,<span class='number'>2</span>,<span class='number'>3</span>,<span class='number'>4</span>,<span class='number'>5</span>]);
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>m</span>.<span class='ident'>last</span>().<span class='ident'>unwrap</span>(), <span class='kw-2'>&amp;</span><span class='number'>5</span>);
-
-        <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>ConsList</span>::<span class='ident'>new</span>();
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>m</span>.<span class='ident'>last</span>(), <span class='prelude-val'>None</span>);
-    }
-
-    <span class='attribute'>#[<span class='ident'>test</span>]</span>
-    <span class='kw'>fn</span> <span class='ident'>test_lastn</span>() {
-        <span class='kw'>let</span> <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>list_from</span>(<span class='kw-2'>&amp;</span>[<span class='number'>0</span>,<span class='number'>1</span>,<span class='number'>2</span>,<span class='number'>3</span>,<span class='number'>4</span>,<span class='number'>5</span>]);
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>m</span>.<span class='ident'>lastn</span>(<span class='number'>0</span>).<span class='ident'>head</span>(), <span class='prelude-val'>None</span>);
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>m</span>.<span class='ident'>lastn</span>(<span class='number'>8</span>), <span class='ident'>m</span>);
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>m</span>.<span class='ident'>lastn</span>(<span class='number'>4</span>), <span class='ident'>m</span>.<span class='ident'>tail</span>().<span class='ident'>tail</span>());
-    }
-
-    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>test</span>)]</span>
-    <span class='kw'>fn</span> <span class='ident'>generate_test</span>() <span class='op'>-&gt;</span> <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>i32</span><span class='op'>&gt;</span> {
-        <span class='ident'>list_from</span>(<span class='kw-2'>&amp;</span>[<span class='number'>0</span>,<span class='number'>1</span>,<span class='number'>2</span>,<span class='number'>3</span>,<span class='number'>4</span>,<span class='number'>5</span>,<span class='number'>6</span>])
-    }
-
-    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>test</span>)]</span>
-    <span class='kw'>fn</span> <span class='ident'>list_from</span><span class='op'>&lt;</span><span class='ident'>T</span>: <span class='ident'>Clone</span><span class='op'>&gt;</span>(<span class='ident'>v</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>T</span>]) <span class='op'>-&gt;</span> <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-        <span class='ident'>v</span>.<span class='ident'>iter</span>().<span class='ident'>rev</span>().<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>x</span><span class='op'>|</span> (<span class='op'>*</span><span class='ident'>x</span>).<span class='ident'>clone</span>()).<span class='ident'>collect</span>()
-    }
-
-    <span class='attribute'>#[<span class='ident'>test</span>]</span>
-    <span class='kw'>fn</span> <span class='ident'>test_iterator</span>() {
-        <span class='kw'>let</span> <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>generate_test</span>();
-        <span class='kw'>for</span> (<span class='ident'>i</span>, <span class='ident'>elt</span>) <span class='kw'>in</span> <span class='ident'>m</span>.<span class='ident'>iter</span>().<span class='ident'>enumerate</span>() {
-            <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>i</span> <span class='kw'>as</span> <span class='ident'>i32</span>, <span class='op'>*</span><span class='ident'>elt</span>);
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="ident">ConsList</span> {
+            <span class="ident">front</span>: <span class="self">self</span>.<span class="ident">front</span>.<span class="ident">clone</span>(),
+            <span class="ident">length</span>: <span class="self">self</span>.<span class="ident">length</span>,
         }
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>n</span> <span class='op'>=</span> <span class='ident'>ConsList</span>::<span class='ident'>new</span>();
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>n</span>.<span class='ident'>iter</span>().<span class='ident'>next</span>(), <span class='prelude-val'>None</span>);
-        <span class='ident'>n</span> <span class='op'>=</span> <span class='ident'>n</span>.<span class='ident'>append</span>(<span class='number'>4</span>);
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>it</span> <span class='op'>=</span> <span class='ident'>n</span>.<span class='ident'>iter</span>();
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>it</span>.<span class='ident'>size_hint</span>(), (<span class='number'>1</span>, <span class='prelude-val'>Some</span>(<span class='number'>1</span>)));
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>it</span>.<span class='ident'>next</span>().<span class='ident'>unwrap</span>(), <span class='kw-2'>&amp;</span><span class='number'>4</span>);
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>it</span>.<span class='ident'>size_hint</span>(), (<span class='number'>0</span>, <span class='prelude-val'>Some</span>(<span class='number'>0</span>)));
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>it</span>.<span class='ident'>next</span>(), <span class='prelude-val'>None</span>);
-    }
-
-    <span class='attribute'>#[<span class='ident'>test</span>]</span>
-    <span class='kw'>fn</span> <span class='ident'>test_iterator_clone</span>() {
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>n</span> <span class='op'>=</span> <span class='ident'>ConsList</span>::<span class='ident'>new</span>();
-        <span class='ident'>n</span> <span class='op'>=</span> <span class='ident'>n</span>.<span class='ident'>append</span>(<span class='number'>1</span>).<span class='ident'>append</span>(<span class='number'>2</span>).<span class='ident'>append</span>(<span class='number'>3</span>);
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>it</span> <span class='op'>=</span> <span class='ident'>n</span>.<span class='ident'>iter</span>();
-        <span class='ident'>it</span>.<span class='ident'>next</span>();
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>jt</span> <span class='op'>=</span> <span class='ident'>it</span>.<span class='ident'>clone</span>();
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>it</span>.<span class='ident'>next</span>(), <span class='ident'>jt</span>.<span class='ident'>next</span>());
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>it</span>.<span class='ident'>next</span>(), <span class='ident'>jt</span>.<span class='ident'>next</span>());
-    }
-
-    <span class='attribute'>#[<span class='ident'>test</span>]</span>
-    <span class='kw'>fn</span> <span class='ident'>test_eq</span>() {
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>n</span>: <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>u8</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>list_from</span>(<span class='kw-2'>&amp;</span>[]);
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>list_from</span>(<span class='kw-2'>&amp;</span>[]);
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>n</span> <span class='op'>==</span> <span class='ident'>m</span>);
-        <span class='ident'>n</span> <span class='op'>=</span> <span class='ident'>n</span>.<span class='ident'>append</span>(<span class='number'>1</span>);
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>n</span> <span class='op'>!=</span> <span class='ident'>m</span>);
-        <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>m</span>.<span class='ident'>append</span>(<span class='number'>1</span>);
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>n</span> <span class='op'>==</span> <span class='ident'>m</span>);
-
-        <span class='kw'>let</span> <span class='ident'>n</span> <span class='op'>=</span> <span class='ident'>list_from</span>(<span class='kw-2'>&amp;</span>[<span class='number'>2</span>,<span class='number'>3</span>,<span class='number'>4</span>]);
-        <span class='kw'>let</span> <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>list_from</span>(<span class='kw-2'>&amp;</span>[<span class='number'>1</span>,<span class='number'>2</span>,<span class='number'>3</span>]);
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>n</span> <span class='op'>!=</span> <span class='ident'>m</span>);
-    }
-
-    <span class='attribute'>#[<span class='ident'>test</span>]</span>
-    <span class='kw'>fn</span> <span class='ident'>test_hash</span>() {
-      <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>x</span> <span class='op'>=</span> <span class='ident'>ConsList</span>::<span class='ident'>new</span>();
-      <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>y</span> <span class='op'>=</span> <span class='ident'>ConsList</span>::<span class='ident'>new</span>();
-
-      <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>hash</span>::<span class='ident'>hash</span>::<span class='op'>&lt;</span>_, <span class='ident'>hash</span>::<span class='ident'>SipHasher</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='ident'>x</span>) <span class='op'>==</span> <span class='ident'>hash</span>::<span class='ident'>hash</span>::<span class='op'>&lt;</span>_, <span class='ident'>hash</span>::<span class='ident'>SipHasher</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='ident'>y</span>));
-
-      <span class='ident'>x</span> <span class='op'>=</span> <span class='ident'>x</span>.<span class='ident'>append</span>(<span class='number'>1</span>).<span class='ident'>append</span>(<span class='number'>2</span>).<span class='ident'>append</span>(<span class='number'>3</span>);
-      <span class='ident'>y</span> <span class='op'>=</span> <span class='ident'>y</span>.<span class='ident'>append</span>(<span class='number'>1</span>).<span class='ident'>append</span>(<span class='number'>4</span>).<span class='ident'>tail</span>().<span class='ident'>append</span>(<span class='number'>2</span>).<span class='ident'>append</span>(<span class='number'>3</span>);
-
-      <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>hash</span>::<span class='ident'>hash</span>::<span class='op'>&lt;</span>_, <span class='ident'>hash</span>::<span class='ident'>SipHasher</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='ident'>x</span>) <span class='op'>==</span> <span class='ident'>hash</span>::<span class='ident'>hash</span>::<span class='op'>&lt;</span>_, <span class='ident'>hash</span>::<span class='ident'>SipHasher</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='ident'>y</span>));
-    }
-
-    <span class='attribute'>#[<span class='ident'>test</span>]</span>
-    <span class='kw'>fn</span> <span class='ident'>test_ord</span>() {
-        <span class='kw'>let</span> <span class='ident'>n</span> <span class='op'>=</span> <span class='ident'>list_from</span>(<span class='kw-2'>&amp;</span>[]);
-        <span class='kw'>let</span> <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>list_from</span>(<span class='kw-2'>&amp;</span>[<span class='number'>1</span>,<span class='number'>2</span>,<span class='number'>3</span>]);
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>n</span> <span class='op'>&lt;</span> <span class='ident'>m</span>);
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>m</span> <span class='op'>&gt;</span> <span class='ident'>n</span>);
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>n</span> <span class='op'>&lt;=</span> <span class='ident'>n</span>);
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>n</span> <span class='op'>&gt;=</span> <span class='ident'>n</span>);
-    }
-
-    <span class='attribute'>#[<span class='ident'>test</span>]</span>
-    <span class='kw'>fn</span> <span class='ident'>test_ord_nan</span>() {
-        <span class='kw'>let</span> <span class='ident'>nan</span> <span class='op'>=</span> <span class='number'>0.0f64</span><span class='op'>/</span><span class='number'>0.0</span>;
-        <span class='kw'>let</span> <span class='ident'>n</span> <span class='op'>=</span> <span class='ident'>list_from</span>(<span class='kw-2'>&amp;</span>[<span class='ident'>nan</span>]);
-        <span class='kw'>let</span> <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>list_from</span>(<span class='kw-2'>&amp;</span>[<span class='ident'>nan</span>]);
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span>(<span class='ident'>n</span> <span class='op'>&lt;</span> <span class='ident'>m</span>));
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span>(<span class='ident'>n</span> <span class='op'>&gt;</span> <span class='ident'>m</span>));
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span>(<span class='ident'>n</span> <span class='op'>&lt;=</span> <span class='ident'>m</span>));
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span>(<span class='ident'>n</span> <span class='op'>&gt;=</span> <span class='ident'>m</span>));
-
-        <span class='kw'>let</span> <span class='ident'>n</span> <span class='op'>=</span> <span class='ident'>list_from</span>(<span class='kw-2'>&amp;</span>[<span class='ident'>nan</span>]);
-        <span class='kw'>let</span> <span class='ident'>one</span> <span class='op'>=</span> <span class='ident'>list_from</span>(<span class='kw-2'>&amp;</span>[<span class='number'>1.0f64</span>]);
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span>(<span class='ident'>n</span> <span class='op'>&lt;</span> <span class='ident'>one</span>));
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span>(<span class='ident'>n</span> <span class='op'>&gt;</span> <span class='ident'>one</span>));
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span>(<span class='ident'>n</span> <span class='op'>&lt;=</span> <span class='ident'>one</span>));
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span>(<span class='ident'>n</span> <span class='op'>&gt;=</span> <span class='ident'>one</span>));
-
-        <span class='kw'>let</span> <span class='ident'>u</span> <span class='op'>=</span> <span class='ident'>list_from</span>(<span class='kw-2'>&amp;</span>[<span class='number'>1.0f64</span>,<span class='number'>2.0</span>,<span class='ident'>nan</span>]);
-        <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> <span class='ident'>list_from</span>(<span class='kw-2'>&amp;</span>[<span class='number'>1.0f64</span>,<span class='number'>2.0</span>,<span class='number'>3.0</span>]);
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span>(<span class='ident'>u</span> <span class='op'>&lt;</span> <span class='ident'>v</span>));
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span>(<span class='ident'>u</span> <span class='op'>&gt;</span> <span class='ident'>v</span>));
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span>(<span class='ident'>u</span> <span class='op'>&lt;=</span> <span class='ident'>v</span>));
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span>(<span class='ident'>u</span> <span class='op'>&gt;=</span> <span class='ident'>v</span>));
-
-        <span class='kw'>let</span> <span class='ident'>s</span> <span class='op'>=</span> <span class='ident'>list_from</span>(<span class='kw-2'>&amp;</span>[<span class='number'>1.0f64</span>,<span class='number'>2.0</span>,<span class='number'>4.0</span>,<span class='number'>2.0</span>]);
-        <span class='kw'>let</span> <span class='ident'>t</span> <span class='op'>=</span> <span class='ident'>list_from</span>(<span class='kw-2'>&amp;</span>[<span class='number'>1.0f64</span>,<span class='number'>2.0</span>,<span class='number'>3.0</span>,<span class='number'>2.0</span>]);
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span>(<span class='ident'>s</span> <span class='op'>&lt;</span> <span class='ident'>t</span>));
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>s</span> <span class='op'>&gt;</span> <span class='ident'>one</span>);
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span>(<span class='ident'>s</span> <span class='op'>&lt;=</span> <span class='ident'>one</span>));
-        <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>s</span> <span class='op'>&gt;=</span> <span class='ident'>one</span>);
-    }
-
-    <span class='attribute'>#[<span class='ident'>test</span>]</span>
-    <span class='kw'>fn</span> <span class='ident'>test_debug</span>() {
-        <span class='kw'>let</span> <span class='ident'>list</span>: <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>i32</span><span class='op'>&gt;</span> <span class='op'>=</span> (<span class='number'>0</span>..<span class='number'>10</span>).<span class='ident'>rev</span>().<span class='ident'>collect</span>();
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>list</span>), <span class='string'>&quot;[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]&quot;</span>);
-
-        <span class='kw'>let</span> <span class='ident'>list</span>: <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='ident'>str</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='macro'>vec</span><span class='macro'>!</span>[<span class='string'>&quot;just&quot;</span>, <span class='string'>&quot;one&quot;</span>, <span class='string'>&quot;test&quot;</span>, <span class='string'>&quot;more&quot;</span>].<span class='ident'>iter</span>()
-                                                                   .<span class='ident'>rev</span>()
-                                                                   .<span class='ident'>map</span>(<span class='op'>|</span><span class='kw-2'>&amp;</span><span class='ident'>s</span><span class='op'>|</span> <span class='ident'>s</span>)
-                                                                   .<span class='ident'>collect</span>();
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>list</span>), <span class='string'>r#&quot;[&quot;just&quot;, &quot;one&quot;, &quot;test&quot;, &quot;more&quot;]&quot;#</span>);
     }
 }
 
-<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>test</span>)]</span>
-<span class='kw'>mod</span> <span class='ident'>bench</span> {
-    <span class='kw'>use</span> <span class='ident'>test</span>::<span class='ident'>Bencher</span>;
-    <span class='kw'>use</span> <span class='ident'>test</span>;
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="macro">try</span><span class="macro">!</span>(<span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;[&quot;</span>));
 
-    <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>ConsList</span>;
+        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">e</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
+            <span class="kw">if</span> <span class="ident">i</span> <span class="op">!=</span> <span class="number">0</span> {
+                <span class="macro">try</span><span class="macro">!</span>(<span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;, &quot;</span>));
+            }
+            <span class="macro">try</span><span class="macro">!</span>(<span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}&quot;</span>, <span class="kw-2">*</span><span class="ident">e</span>));
+        }
 
-    <span class='attribute'>#[<span class='ident'>bench</span>]</span>
-    <span class='kw'>fn</span> <span class='ident'>bench_collect_into</span>(<span class='ident'>b</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>test</span>::<span class='ident'>Bencher</span>) {
-        <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span>[<span class='number'>0i32</span>; <span class='number'>64</span>];
-        <span class='ident'>b</span>.<span class='ident'>iter</span>(<span class='op'>||</span> {
-            <span class='kw'>let</span> _: <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>i32</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>v</span>.<span class='ident'>iter</span>().<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>x</span><span class='op'>|</span> <span class='op'>*</span><span class='ident'>x</span>).<span class='ident'>collect</span>();
-        })
-    }
-
-    <span class='attribute'>#[<span class='ident'>bench</span>]</span>
-    <span class='kw'>fn</span> <span class='ident'>bench_append</span>(<span class='ident'>b</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>test</span>::<span class='ident'>Bencher</span>) {
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>m</span>: <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>i32</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>ConsList</span>::<span class='ident'>new</span>();
-        <span class='ident'>b</span>.<span class='ident'>iter</span>(<span class='op'>||</span> {
-            <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>m</span>.<span class='ident'>append</span>(<span class='number'>0</span>);
-        })
-    }
-
-    <span class='attribute'>#[<span class='ident'>bench</span>]</span>
-    <span class='kw'>fn</span> <span class='ident'>bench_append_tail</span>(<span class='ident'>b</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>test</span>::<span class='ident'>Bencher</span>) {
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>m</span>: <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>i32</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>ConsList</span>::<span class='ident'>new</span>();
-        <span class='ident'>b</span>.<span class='ident'>iter</span>(<span class='op'>||</span> {
-            <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>m</span>.<span class='ident'>append</span>(<span class='number'>0</span>).<span class='ident'>tail</span>();
-        })
-    }
-
-    <span class='attribute'>#[<span class='ident'>bench</span>]</span>
-    <span class='kw'>fn</span> <span class='ident'>bench_iter</span>(<span class='ident'>b</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>test</span>::<span class='ident'>Bencher</span>) {
-        <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span>[<span class='number'>0</span>; <span class='number'>128</span>];
-        <span class='kw'>let</span> <span class='ident'>m</span>: <span class='ident'>ConsList</span><span class='op'>&lt;</span><span class='ident'>i32</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>v</span>.<span class='ident'>iter</span>().<span class='ident'>map</span>(<span class='op'>|</span><span class='kw-2'>&amp;</span><span class='ident'>x</span><span class='op'>|</span><span class='ident'>x</span>).<span class='ident'>collect</span>();
-        <span class='ident'>b</span>.<span class='ident'>iter</span>(<span class='op'>||</span> {
-            <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>m</span>.<span class='ident'>iter</span>().<span class='ident'>count</span>() <span class='op'>==</span> <span class='number'>128</span>);
-        })
+        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;]&quot;</span>)
     }
 }
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Hash</span><span class="op">&gt;</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) {
+        <span class="self">self</span>.<span class="ident">len</span>().<span class="ident">hash</span>(<span class="ident">state</span>);
+        <span class="kw">for</span> <span class="ident">elt</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">iter</span>() {
+            <span class="ident">elt</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
+        }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">IntoIterator</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>;
+    <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">iter</span>()
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">tests</span> {
+    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">hash</span>;
+
+    <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">ConsList</span>;
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_basic</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">ConsList</span>::<span class="ident">new</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">m</span>.<span class="ident">head</span>(), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">m</span>.<span class="ident">tail</span>().<span class="ident">head</span>(), <span class="prelude-val">None</span>);
+        <span class="ident">m</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">append</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="number">1</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">m</span>.<span class="ident">head</span>().<span class="ident">unwrap</span>(), <span class="number">1</span>);
+        <span class="ident">m</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">tail</span>().<span class="ident">append</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="number">2</span>)).<span class="ident">append</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="number">3</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">m</span>.<span class="ident">len</span>(), <span class="number">2</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">m</span>.<span class="ident">head</span>().<span class="ident">unwrap</span>(), <span class="number">3</span>);
+        <span class="ident">m</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">tail</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">m</span>.<span class="ident">head</span>().<span class="ident">unwrap</span>(), <span class="number">2</span>);
+        <span class="ident">m</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">tail</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">m</span>.<span class="ident">len</span>(), <span class="number">0</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">m</span>.<span class="ident">head</span>(), <span class="prelude-val">None</span>);
+        <span class="ident">m</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">append</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="number">7</span>)).<span class="ident">append</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="number">5</span>)).<span class="ident">append</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="number">3</span>)).<span class="ident">append</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="number">1</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">m</span>.<span class="ident">head</span>().<span class="ident">unwrap</span>(), <span class="number">1</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_tailn</span>() {
+        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">list_from</span>(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">m</span>.<span class="ident">tailn</span>(<span class="number">0</span>), <span class="ident">m</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">m</span>.<span class="ident">tailn</span>(<span class="number">3</span>), <span class="ident">m</span>.<span class="ident">tail</span>().<span class="ident">tail</span>().<span class="ident">tail</span>());
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_last</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">list_from</span>(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">m</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>(), <span class="kw-2">&amp;</span><span class="number">5</span>);
+
+        <span class="ident">m</span> <span class="op">=</span> <span class="ident">ConsList</span>::<span class="ident">new</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">m</span>.<span class="ident">last</span>(), <span class="prelude-val">None</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_lastn</span>() {
+        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">list_from</span>(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">m</span>.<span class="ident">lastn</span>(<span class="number">0</span>).<span class="ident">head</span>(), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">m</span>.<span class="ident">lastn</span>(<span class="number">8</span>), <span class="ident">m</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">m</span>.<span class="ident">lastn</span>(<span class="number">4</span>), <span class="ident">m</span>.<span class="ident">tail</span>().<span class="ident">tail</span>());
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">generate_test</span>() <span class="op">-&gt;</span> <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
+        <span class="ident">list_from</span>(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>])
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">list_from</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Clone</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>]) <span class="op">-&gt;</span> <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="ident">v</span>.<span class="ident">iter</span>().<span class="ident">rev</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> (<span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">clone</span>()).<span class="ident">collect</span>()
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_iterator</span>() {
+        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">generate_test</span>();
+        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">m</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="kw-2">*</span><span class="ident">elt</span>);
+        }
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">ConsList</span>::<span class="ident">new</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">n</span>.<span class="ident">iter</span>().<span class="ident">next</span>(), <span class="prelude-val">None</span>);
+        <span class="ident">n</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">append</span>(<span class="number">4</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">it</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">iter</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">it</span>.<span class="ident">size_hint</span>(), (<span class="number">1</span>, <span class="prelude-val">Some</span>(<span class="number">1</span>)));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">it</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>(), <span class="kw-2">&amp;</span><span class="number">4</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">it</span>.<span class="ident">size_hint</span>(), (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>)));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">it</span>.<span class="ident">next</span>(), <span class="prelude-val">None</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_iterator_clone</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">ConsList</span>::<span class="ident">new</span>();
+        <span class="ident">n</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">append</span>(<span class="number">1</span>).<span class="ident">append</span>(<span class="number">2</span>).<span class="ident">append</span>(<span class="number">3</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">it</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">iter</span>();
+        <span class="ident">it</span>.<span class="ident">next</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">jt</span> <span class="op">=</span> <span class="ident">it</span>.<span class="ident">clone</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">it</span>.<span class="ident">next</span>(), <span class="ident">jt</span>.<span class="ident">next</span>());
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">it</span>.<span class="ident">next</span>(), <span class="ident">jt</span>.<span class="ident">next</span>());
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_eq</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span>: <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">list_from</span>(<span class="kw-2">&amp;</span>[]);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">list_from</span>(<span class="kw-2">&amp;</span>[]);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">n</span> <span class="op">==</span> <span class="ident">m</span>);
+        <span class="ident">n</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">append</span>(<span class="number">1</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">n</span> <span class="op">!=</span> <span class="ident">m</span>);
+        <span class="ident">m</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">append</span>(<span class="number">1</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">n</span> <span class="op">==</span> <span class="ident">m</span>);
+
+        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">list_from</span>(<span class="kw-2">&amp;</span>[<span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]);
+        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">list_from</span>(<span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">n</span> <span class="op">!=</span> <span class="ident">m</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_hash</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">ConsList</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">ConsList</span>::<span class="ident">new</span>();
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">h</span> <span class="op">=</span> <span class="ident">hash</span>::<span class="ident">SipHasher</span>::<span class="ident">new</span>();
+
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">hash</span>::<span class="ident">Hash</span>::<span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">h</span>) <span class="op">==</span> <span class="ident">hash</span>::<span class="ident">Hash</span>::<span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">h</span>));
+
+        <span class="ident">x</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">append</span>(<span class="number">1</span>).<span class="ident">append</span>(<span class="number">2</span>).<span class="ident">append</span>(<span class="number">3</span>);
+        <span class="ident">y</span> <span class="op">=</span> <span class="ident">y</span>.<span class="ident">append</span>(<span class="number">1</span>).<span class="ident">append</span>(<span class="number">4</span>).<span class="ident">tail</span>().<span class="ident">append</span>(<span class="number">2</span>).<span class="ident">append</span>(<span class="number">3</span>);
+
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">hash</span>::<span class="ident">Hash</span>::<span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">h</span>) <span class="op">==</span> <span class="ident">hash</span>::<span class="ident">Hash</span>::<span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">h</span>));
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_ord</span>() {
+        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">list_from</span>(<span class="kw-2">&amp;</span>[]);
+        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">list_from</span>(<span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">n</span> <span class="op">&lt;</span> <span class="ident">m</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">m</span> <span class="op">&gt;</span> <span class="ident">n</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">n</span> <span class="op">&lt;=</span> <span class="ident">n</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">n</span> <span class="op">&gt;=</span> <span class="ident">n</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_ord_nan</span>() {
+        <span class="kw">let</span> <span class="ident">nan</span> <span class="op">=</span> <span class="number">0.0f64</span> <span class="op">/</span> <span class="number">0.0</span>;
+        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">list_from</span>(<span class="kw-2">&amp;</span>[<span class="ident">nan</span>]);
+        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">list_from</span>(<span class="kw-2">&amp;</span>[<span class="ident">nan</span>]);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span>(<span class="ident">n</span> <span class="op">&lt;</span> <span class="ident">m</span>));
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span>(<span class="ident">n</span> <span class="op">&gt;</span> <span class="ident">m</span>));
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span>(<span class="ident">n</span> <span class="op">&lt;=</span> <span class="ident">m</span>));
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span>(<span class="ident">n</span> <span class="op">&gt;=</span> <span class="ident">m</span>));
+
+        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">list_from</span>(<span class="kw-2">&amp;</span>[<span class="ident">nan</span>]);
+        <span class="kw">let</span> <span class="ident">one</span> <span class="op">=</span> <span class="ident">list_from</span>(<span class="kw-2">&amp;</span>[<span class="number">1.0f64</span>]);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span>(<span class="ident">n</span> <span class="op">&lt;</span> <span class="ident">one</span>));
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span>(<span class="ident">n</span> <span class="op">&gt;</span> <span class="ident">one</span>));
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span>(<span class="ident">n</span> <span class="op">&lt;=</span> <span class="ident">one</span>));
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span>(<span class="ident">n</span> <span class="op">&gt;=</span> <span class="ident">one</span>));
+
+        <span class="kw">let</span> <span class="ident">u</span> <span class="op">=</span> <span class="ident">list_from</span>(<span class="kw-2">&amp;</span>[<span class="number">1.0f64</span>, <span class="number">2.0</span>, <span class="ident">nan</span>]);
+        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">list_from</span>(<span class="kw-2">&amp;</span>[<span class="number">1.0f64</span>, <span class="number">2.0</span>, <span class="number">3.0</span>]);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span>(<span class="ident">u</span> <span class="op">&lt;</span> <span class="ident">v</span>));
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span>(<span class="ident">u</span> <span class="op">&gt;</span> <span class="ident">v</span>));
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span>(<span class="ident">u</span> <span class="op">&lt;=</span> <span class="ident">v</span>));
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span>(<span class="ident">u</span> <span class="op">&gt;=</span> <span class="ident">v</span>));
+
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">list_from</span>(<span class="kw-2">&amp;</span>[<span class="number">1.0f64</span>, <span class="number">2.0</span>, <span class="number">4.0</span>, <span class="number">2.0</span>]);
+        <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">list_from</span>(<span class="kw-2">&amp;</span>[<span class="number">1.0f64</span>, <span class="number">2.0</span>, <span class="number">3.0</span>, <span class="number">2.0</span>]);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span>(<span class="ident">s</span> <span class="op">&lt;</span> <span class="ident">t</span>));
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">s</span> <span class="op">&gt;</span> <span class="ident">one</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span>(<span class="ident">s</span> <span class="op">&lt;=</span> <span class="ident">one</span>));
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">s</span> <span class="op">&gt;=</span> <span class="ident">one</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_debug</span>() {
+        <span class="kw">let</span> <span class="ident">list</span>: <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">0</span>..<span class="number">10</span>).<span class="ident">rev</span>().<span class="ident">collect</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">list</span>), <span class="string">&quot;[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]&quot;</span>);
+
+        <span class="kw">let</span> <span class="ident">list</span>: <span class="ident">ConsList</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;just&quot;</span>, <span class="string">&quot;one&quot;</span>, <span class="string">&quot;test&quot;</span>, <span class="string">&quot;more&quot;</span>]
+            .<span class="ident">iter</span>()
+            .<span class="ident">rev</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>)
+            .<span class="ident">collect</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">list</span>), <span class="string">r#&quot;[&quot;just&quot;, &quot;one&quot;, &quot;test&quot;, &quot;more&quot;]&quot;#</span>);
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">bench</span> {
+    <span class="kw">use</span> <span class="ident">test</span>::<span class="ident">Bencher</span>;
+    <span class="kw">use</span> <span class="ident">test</span>;
+
+    <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">ConsList</span>;
+
+    <span class="attribute">#[<span class="ident">bench</span>]</span>
+    <span class="kw">fn</span> <span class="ident">bench_collect_into</span>(<span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">test</span>::<span class="ident">Bencher</span>) {
+        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">0i32</span>; <span class="number">64</span>];
+        <span class="ident">b</span>.<span class="ident">iter</span>(<span class="op">||</span> { <span class="kw">let</span> _: <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">collect</span>(); })
+    }
+
+    <span class="attribute">#[<span class="ident">bench</span>]</span>
+    <span class="kw">fn</span> <span class="ident">bench_append</span>(<span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">test</span>::<span class="ident">Bencher</span>) {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m</span>: <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">ConsList</span>::<span class="ident">new</span>();
+        <span class="ident">b</span>.<span class="ident">iter</span>(<span class="op">||</span> { <span class="ident">m</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">append</span>(<span class="number">0</span>); })
+    }
+
+    <span class="attribute">#[<span class="ident">bench</span>]</span>
+    <span class="kw">fn</span> <span class="ident">bench_append_tail</span>(<span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">test</span>::<span class="ident">Bencher</span>) {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m</span>: <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">ConsList</span>::<span class="ident">new</span>();
+        <span class="ident">b</span>.<span class="ident">iter</span>(<span class="op">||</span> { <span class="ident">m</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">append</span>(<span class="number">0</span>).<span class="ident">tail</span>(); })
+    }
+
+    <span class="attribute">#[<span class="ident">bench</span>]</span>
+    <span class="kw">fn</span> <span class="ident">bench_iter</span>(<span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">test</span>::<span class="ident">Bencher</span>) {
+        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">0</span>; <span class="number">128</span>];
+        <span class="kw">let</span> <span class="ident">m</span>: <span class="ident">ConsList</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>).<span class="ident">collect</span>();
+        <span class="ident">b</span>.<span class="ident">iter</span>(<span class="op">||</span> {
+                   <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">m</span>.<span class="ident">iter</span>().<span class="ident">count</span>() <span class="op">==</span> <span class="number">128</span>);
+               })
+    }
+}
+
 </pre>
 </section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>
 
-    <div id="help" class="hidden">
-        <div class="shortcuts">
-            <h1>Keyboard shortcuts</h1>
-            <dl>
-                <dt>?</dt>
-                <dd>Show this help dialog</dd>
-                <dt>S</dt>
-                <dd>Focus the search field</dd>
-                <dt>&larrb;</dt>
-                <dd>Move up in search results</dd>
-                <dt>&rarrb;</dt>
-                <dd>Move down in search results</dd>
-                <dt>&#9166;</dt>
-                <dd>Go to active search result</dd>
-            </dl>
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
         </div>
-        <div class="infos">
-            <h1>Search tricks</h1>
-            <p>
-                Prefix searches with a type followed by a colon (e.g.
-                <code>fn:</code>) to restrict the search to a given type.
-            </p>
-            <p>
-                Accepted types are: <code>fn</code>, <code>mod</code>,
-                <code>struct</code>, <code>enum</code>,
-                <code>trait</code>, <code>typedef</code> (or
-                <code>tdef</code>).
-            </p>
-            <p>
-                Search functions by type signature (e.g.
-                <code>vec -> usize</code>)
-            </p>
-        </div>
-    </div>
+    </aside>
 
     
 
     <script>
         window.rootPath = "../../";
         window.currentCrate = "cons_list";
-        window.playgroundUrl = "";
     </script>
     <script src="../../jquery.js"></script>
     <script src="../../main.js"></script>
-    
-    <script async src="../../search-index.js"></script>
+    <script defer src="../../search-index.js"></script>
 </body>
 </html>
