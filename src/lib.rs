@@ -43,6 +43,12 @@ pub struct ConsList<T> {
     length: usize,
 }
 
+impl<T> Default for ConsList<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T> ConsList<T> {
     /// Constructs a new, empty `ConsList`
     pub fn new() -> Self {
