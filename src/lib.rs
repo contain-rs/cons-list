@@ -25,8 +25,8 @@ struct Node<T> {
 }
 
 impl<T> Node<T> {
-    fn new(elem: T) -> Self {
-        Self { elem, next: None }
+    fn new(elem: T, next: Option<Rc<Self>>) -> Self {
+        Self { elem, next }
     }
 }
 
@@ -60,11 +60,10 @@ impl<T> ConsList<T> {
 
     /// Returns a copy of the list, with `elem` appended to the front
     pub fn append(&self, elem: T) -> Self {
-        let mut new_node = Node::new(elem);
-        new_node.next = self.front.clone();
+        let new_node = Node::new(elem, self.front.clone());
 
         Self {
-            front: Some(Rc::new(new_node)),
+            front: Some(new_node.into()),
             length: self.len() + 1,
         }
     }
@@ -123,7 +122,7 @@ impl<T> ConsList<T> {
     }
 
     pub fn is_empty(&self) -> bool {
-        return self.len() == 0;
+        self.len() == 0
     }
 }
 
@@ -250,6 +249,7 @@ mod tests {
     use std::hash;
 
     use super::ConsList;
+    use std::collections::hash_map::DefaultHasher;
 
     #[test]
     fn test_basic() {
@@ -355,7 +355,7 @@ mod tests {
         let mut x = ConsList::new();
         let mut y = ConsList::new();
 
-        let mut h = hash::SipHasher::new();
+        let mut h = DefaultHasher::new();
 
         assert!(hash::Hash::hash(&x, &mut h) == hash::Hash::hash(&y, &mut h));
 
