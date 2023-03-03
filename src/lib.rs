@@ -11,27 +11,22 @@
 //! An immutable singly-linked list, as seen in basically every functional language.
 
 #![cfg_attr(test, feature(test))]
-#[cfg(test)]
-extern crate test;
 
-
-
-use std::cmp::Ordering;
-use std::iter;
-use std::rc::Rc;
-use std::hash::{Hash, Hasher};
+use std::{
+    cmp::Ordering,
+    hash::{Hash, Hasher},
+    iter,
+    rc::Rc,
+};
 
 struct Node<T> {
     elem: T,
-    next: Option<Rc<Node<T>>>,
+    next: Option<Rc<Self>>,
 }
 
 impl<T> Node<T> {
-    fn new(elem: T) -> Node<T> {
-        Node {
-            elem: elem,
-            next: None,
-        }
+    fn new(elem: T, next: Option<Rc<Self>>) -> Self {
+        Self { elem, next }
     }
 }
 
@@ -48,22 +43,27 @@ pub struct ConsList<T> {
     length: usize,
 }
 
+impl<T> Default for ConsList<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T> ConsList<T> {
     /// Constructs a new, empty `ConsList`
-    pub fn new() -> ConsList<T> {
-        ConsList {
+    pub fn new() -> Self {
+        Self {
             front: None,
             length: 0,
         }
     }
 
     /// Returns a copy of the list, with `elem` appended to the front
-    pub fn append(&self, elem: T) -> ConsList<T> {
-        let mut new_node = Node::new(elem);
-        new_node.next = self.front.clone();
+    pub fn append(&self, elem: T) -> Self {
+        let new_node = Node::new(elem, self.front.clone());
 
-        ConsList {
-            front: Some(Rc::new(new_node)),
+        Self {
+            front: Some(new_node.into()),
             length: self.len() + 1,
         }
     }
@@ -74,21 +74,21 @@ impl<T> ConsList<T> {
     }
 
     /// Returns a copy of the list, with the first element removed
-    pub fn tail(&self) -> ConsList<T> {
+    pub fn tail(&self) -> Self {
         self.tailn(1)
     }
 
     /// Returns a copy of the list, with the first `n` elements removed
-    pub fn tailn(&self, n: usize) -> ConsList<T> {
+    pub fn tailn(&self, n: usize) -> Self {
         if self.len() <= n {
-            ConsList::new()
+            Self::new()
         } else {
             let len = self.len() - n;
             let mut head = self.front.as_ref();
             for _ in 0..n {
                 head = head.unwrap().next.as_ref();
             }
-            ConsList {
+            Self {
                 front: Some(head.unwrap().clone()),
                 length: len,
             }
@@ -101,13 +101,12 @@ impl<T> ConsList<T> {
     }
 
     /// Returns a copy of the list, with only the last `n` elements remaining
-    pub fn lastn(&self, n: usize) -> ConsList<T> {
+    pub fn lastn(&self, n: usize) -> Self {
         if n >= self.length {
             self.clone()
         } else {
             self.tailn(self.length - n)
         }
-
     }
 
     /// Returns an iterator over references to the elements of the list in order
@@ -123,7 +122,7 @@ impl<T> ConsList<T> {
     }
 
     pub fn is_empty(&self) -> bool {
-        return self.len() == 0;
+        self.len() == 0
     }
 }
 
@@ -136,20 +135,17 @@ impl<T> Drop for ConsList<T> {
         loop {
             let temp = head;
             match temp {
-                Some(node) => {
-                    match Rc::try_unwrap(node) {
-                        Ok(mut node) => {
-                            head = node.next.take();
-                        }
-                        _ => return,
+                Some(node) => match Rc::try_unwrap(node) {
+                    Ok(mut node) => {
+                        head = node.next.take();
                     }
-                }
+                    _ => return,
+                },
                 _ => return,
             }
         }
     }
 }
-
 
 impl<'a, T> Iterator for Iter<'a, T> {
     type Item = &'a T;
@@ -170,8 +166,8 @@ impl<'a, T> Iterator for Iter<'a, T> {
 }
 
 impl<T> iter::FromIterator<T> for ConsList<T> {
-    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> ConsList<T> {
-        let mut list = ConsList::new();
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        let mut list = Self::new();
         for elem in iter {
             list = list.append(elem);
         }
@@ -180,17 +176,17 @@ impl<T> iter::FromIterator<T> for ConsList<T> {
 }
 
 impl<T: PartialEq> PartialEq for ConsList<T> {
-    fn eq(&self, other: &ConsList<T>) -> bool {
+    fn eq(&self, other: &Self) -> bool {
         self.len() == other.len() && self.iter().zip(other.iter()).all(|(x, y)| x == y)
     }
 
-    fn ne(&self, other: &ConsList<T>) -> bool {
+    fn ne(&self, other: &Self) -> bool {
         self.len() != other.len() || self.iter().zip(other.iter()).all(|(x, y)| x != y)
     }
 }
 
 impl<T: PartialOrd> PartialOrd for ConsList<T> {
-    fn partial_cmp(&self, other: &ConsList<T>) -> Option<Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         let mut a = self.iter();
         let mut b = other.iter();
         loop {
@@ -198,20 +194,18 @@ impl<T: PartialOrd> PartialOrd for ConsList<T> {
                 (None, None) => return Some(std::cmp::Ordering::Equal),
                 (None, _) => return Some(std::cmp::Ordering::Less),
                 (_, None) => return Some(std::cmp::Ordering::Greater),
-                (Some(x), Some(y)) => {
-                    match x.partial_cmp(&y) {
-                        Some(std::cmp::Ordering::Equal) => (),
-                        non_eq => return non_eq,
-                    }
-                }
+                (Some(x), Some(y)) => match x.partial_cmp(&y) {
+                    Some(std::cmp::Ordering::Equal) => (),
+                    non_eq => return non_eq,
+                },
             }
         }
     }
 }
 
 impl<T> Clone for ConsList<T> {
-    fn clone(&self) -> ConsList<T> {
-        ConsList {
+    fn clone(&self) -> Self {
+        Self {
             front: self.front.clone(),
             length: self.length,
         }
@@ -220,13 +214,13 @@ impl<T> Clone for ConsList<T> {
 
 impl<T: std::fmt::Debug> std::fmt::Debug for ConsList<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        try!(write!(f, "["));
+        write!(f, "[")?;
 
         for (i, e) in self.iter().enumerate() {
             if i != 0 {
-                try!(write!(f, ", "));
+                write!(f, ", ")?;
             }
-            try!(write!(f, "{:?}", *e));
+            write!(f, "{:?}", *e)?;
         }
 
         write!(f, "]")
@@ -255,6 +249,7 @@ mod tests {
     use std::hash;
 
     use super::ConsList;
+    use std::collections::hash_map::DefaultHasher;
 
     #[test]
     fn test_basic() {
@@ -271,7 +266,11 @@ mod tests {
         m = m.tail();
         assert_eq!(m.len(), 0);
         assert_eq!(m.head(), None);
-        m = m.append(Box::new(7)).append(Box::new(5)).append(Box::new(3)).append(Box::new(1));
+        m = m
+            .append(Box::new(7))
+            .append(Box::new(5))
+            .append(Box::new(3))
+            .append(Box::new(1));
         assert_eq!(**m.head().unwrap(), 1);
     }
 
@@ -356,7 +355,7 @@ mod tests {
         let mut x = ConsList::new();
         let mut y = ConsList::new();
 
-        let mut h = hash::SipHasher::new();
+        let mut h = DefaultHasher::new();
 
         assert!(hash::Hash::hash(&x, &mut h) == hash::Hash::hash(&y, &mut h));
 
@@ -424,36 +423,41 @@ mod tests {
 
 #[cfg(test)]
 mod bench {
+    extern crate test;
     use test::Bencher;
-    use test;
 
     use super::ConsList;
 
     #[bench]
-    fn bench_collect_into(b: &mut test::Bencher) {
+    fn bench_collect_into(b: &mut Bencher) {
         let v = &[0i32; 64];
-        b.iter(|| { let _: ConsList<i32> = v.iter().map(|x| *x).collect(); })
+        b.iter(|| {
+            let _: ConsList<i32> = v.iter().map(|x| *x).collect();
+        })
     }
 
     #[bench]
-    fn bench_append(b: &mut test::Bencher) {
+    fn bench_append(b: &mut Bencher) {
         let mut m: ConsList<i32> = ConsList::new();
-        b.iter(|| { m = m.append(0); })
+        b.iter(|| {
+            m = m.append(0);
+        })
     }
 
     #[bench]
-    fn bench_append_tail(b: &mut test::Bencher) {
+    fn bench_append_tail(b: &mut Bencher) {
         let mut m: ConsList<i32> = ConsList::new();
-        b.iter(|| { m = m.append(0).tail(); })
+        b.iter(|| {
+            m = m.append(0).tail();
+        })
     }
 
     #[bench]
-    fn bench_iter(b: &mut test::Bencher) {
+    fn bench_iter(b: &mut Bencher) {
         let v = &[0; 128];
         let m: ConsList<i32> = v.iter().map(|&x| x).collect();
         b.iter(|| {
-                   assert!(m.iter().count() == 128);
-               })
+            assert!(m.iter().count() == 128);
+        })
     }
 }
-

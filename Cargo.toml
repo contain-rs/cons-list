@@ -2,11 +2,13 @@
 
 name = "cons-list"
 version = "0.0.2"
+edition = "2018"
 license = "MIT/Apache-2.0"
 description = "An immutable singly-linked list, as seen in basically every functional language"
 authors = [
     "Alexis Beingessner <a.beingessner@gmail.com>",
 ]
+
 
 repository = "https://github.com/contain-rs/cons-list"
 homepage = "https://github.com/contain-rs/cons-list"
