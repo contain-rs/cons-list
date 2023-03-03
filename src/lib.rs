@@ -11,13 +11,13 @@
 //! An immutable singly-linked list, as seen in basically every functional language.
 
 #![cfg_attr(test, feature(test))]
-#[cfg(test)]
-extern crate test;
 
-use std::cmp::Ordering;
-use std::hash::{Hash, Hasher};
-use std::iter;
-use std::rc::Rc;
+use std::{
+    cmp::Ordering,
+    hash::{Hash, Hasher},
+    iter,
+    rc::Rc,
+};
 
 struct Node<T> {
     elem: T,
@@ -26,10 +26,7 @@ struct Node<T> {
 
 impl<T> Node<T> {
     fn new(elem: T) -> Self {
-        Self {
-            elem: elem,
-            next: None,
-        }
+        Self { elem, next: None }
     }
 }
 
