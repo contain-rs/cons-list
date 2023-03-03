@@ -417,13 +417,13 @@ mod tests {
 
 #[cfg(test)]
 mod bench {
-    use test;
+    extern crate test;
     use test::Bencher;
 
     use super::ConsList;
 
     #[bench]
-    fn bench_collect_into(b: &mut test::Bencher) {
+    fn bench_collect_into(b: &mut Bencher) {
         let v = &[0i32; 64];
         b.iter(|| {
             let _: ConsList<i32> = v.iter().map(|x| *x).collect();
@@ -431,7 +431,7 @@ mod bench {
     }
 
     #[bench]
-    fn bench_append(b: &mut test::Bencher) {
+    fn bench_append(b: &mut Bencher) {
         let mut m: ConsList<i32> = ConsList::new();
         b.iter(|| {
             m = m.append(0);
@@ -439,7 +439,7 @@ mod bench {
     }
 
     #[bench]
-    fn bench_append_tail(b: &mut test::Bencher) {
+    fn bench_append_tail(b: &mut Bencher) {
         let mut m: ConsList<i32> = ConsList::new();
         b.iter(|| {
             m = m.append(0).tail();
@@ -447,7 +447,7 @@ mod bench {
     }
 
     #[bench]
-    fn bench_iter(b: &mut test::Bencher) {
+    fn bench_iter(b: &mut Bencher) {
         let v = &[0; 128];
         let m: ConsList<i32> = v.iter().map(|&x| x).collect();
         b.iter(|| {
