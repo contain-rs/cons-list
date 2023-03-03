@@ -21,12 +21,12 @@ use std::rc::Rc;
 
 struct Node<T> {
     elem: T,
-    next: Option<Rc<Node<T>>>,
+    next: Option<Rc<Self>>,
 }
 
 impl<T> Node<T> {
-    fn new(elem: T) -> Node<T> {
-        Node {
+    fn new(elem: T) -> Self {
+        Self {
             elem: elem,
             next: None,
         }
@@ -48,19 +48,19 @@ pub struct ConsList<T> {
 
 impl<T> ConsList<T> {
     /// Constructs a new, empty `ConsList`
-    pub fn new() -> ConsList<T> {
-        ConsList {
+    pub fn new() -> Self {
+        Self {
             front: None,
             length: 0,
         }
     }
 
     /// Returns a copy of the list, with `elem` appended to the front
-    pub fn append(&self, elem: T) -> ConsList<T> {
+    pub fn append(&self, elem: T) -> Self {
         let mut new_node = Node::new(elem);
         new_node.next = self.front.clone();
 
-        ConsList {
+        Self {
             front: Some(Rc::new(new_node)),
             length: self.len() + 1,
         }
@@ -72,21 +72,21 @@ impl<T> ConsList<T> {
     }
 
     /// Returns a copy of the list, with the first element removed
-    pub fn tail(&self) -> ConsList<T> {
+    pub fn tail(&self) -> Self {
         self.tailn(1)
     }
 
     /// Returns a copy of the list, with the first `n` elements removed
-    pub fn tailn(&self, n: usize) -> ConsList<T> {
+    pub fn tailn(&self, n: usize) -> Self {
         if self.len() <= n {
-            ConsList::new()
+            Self::new()
         } else {
             let len = self.len() - n;
             let mut head = self.front.as_ref();
             for _ in 0..n {
                 head = head.unwrap().next.as_ref();
             }
-            ConsList {
+            Self {
                 front: Some(head.unwrap().clone()),
                 length: len,
             }
@@ -99,7 +99,7 @@ impl<T> ConsList<T> {
     }
 
     /// Returns a copy of the list, with only the last `n` elements remaining
-    pub fn lastn(&self, n: usize) -> ConsList<T> {
+    pub fn lastn(&self, n: usize) -> Self {
         if n >= self.length {
             self.clone()
         } else {
@@ -164,8 +164,8 @@ impl<'a, T> Iterator for Iter<'a, T> {
 }
 
 impl<T> iter::FromIterator<T> for ConsList<T> {
-    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> ConsList<T> {
-        let mut list = ConsList::new();
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        let mut list = Self::new();
         for elem in iter {
             list = list.append(elem);
         }
@@ -174,17 +174,17 @@ impl<T> iter::FromIterator<T> for ConsList<T> {
 }
 
 impl<T: PartialEq> PartialEq for ConsList<T> {
-    fn eq(&self, other: &ConsList<T>) -> bool {
+    fn eq(&self, other: &Self) -> bool {
         self.len() == other.len() && self.iter().zip(other.iter()).all(|(x, y)| x == y)
     }
 
-    fn ne(&self, other: &ConsList<T>) -> bool {
+    fn ne(&self, other: &Self) -> bool {
         self.len() != other.len() || self.iter().zip(other.iter()).all(|(x, y)| x != y)
     }
 }
 
 impl<T: PartialOrd> PartialOrd for ConsList<T> {
-    fn partial_cmp(&self, other: &ConsList<T>) -> Option<Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         let mut a = self.iter();
         let mut b = other.iter();
         loop {
@@ -202,8 +202,8 @@ impl<T: PartialOrd> PartialOrd for ConsList<T> {
 }
 
 impl<T> Clone for ConsList<T> {
-    fn clone(&self) -> ConsList<T> {
-        ConsList {
+    fn clone(&self) -> Self {
+        Self {
             front: self.front.clone(),
             length: self.length,
         }
